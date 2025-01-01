@@ -4,13 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnackTrack</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/SnackTrack.svg" >
+    <link rel="icon" type="image/svg+xml" href="/assets/SnackTrack_text.svg" >
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .bg-orange-400 {
+            background-color: #ff9c2b; /* Orange */
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            grid-gap: 1.5rem; /* Gap between grid items */
+        }
+
+        .grid-item-2-3 {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Gap between stacked items */
+        }
+        .scrollable {
+            overflow-y: auto;
+        }
+
+        .max-height-products {
+            max-height: 400px; /* Adjust based on visible rows for Products */
+        }
+
+        .max-height-invoice {
+            max-height: 200px; /* Adjust based on visible rows for Invoice */
+        }
+    </style>
 </head>
 <body>
-    <header class="bg-gray-800 text-white py-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="#" class="text-lg font-bold">SnackTrack</a>
+    <header class="bg-orange-400 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a href="#" class="text-lg font-bold"><img src="/assets/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
             <nav>
                 <ul class="flex space-x-4">
                     <li><a href="#">Home</a></li>
@@ -25,95 +53,192 @@
     <main class="container mx-auto mt-10">
         <h1 class="text-3xl font-bold text-center mb-6">Welcome to SnackTrack</h1>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">Products</h2>
-            <div class="bg-gray-100 rounded-lg p-4">
-                <table class="min-w-full">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-2">Product</th>
-                            <th class="px-4 py-2">Price</th>
-                            <th class="px-4 py-2">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border px-4 py-2">Chips</td>
-                            <td class="border px-4 py-2">$1.50</td>
-                            <td class="border px-4 py-2">
-                                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Add</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Soda</td>
-                            <td class="border px-4 py-2">$1.00</td>
-                            <td class="border px-4 py-2">
-                                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Add</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Sandwich</td>
-                            <td class="border px-4 py-2">$3.00</td>
-                            <td class="border px-4 py-2">
-                                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Add</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border px-4 py-2">Fruit</td>
-                            <td class="border px-4 py-2">$0.75</td>
-                            <td class="border px-4 py-2">
-                                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded">Add</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-            <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
-            <div class="bg-gray-100 rounded-lg p-4">
-                <table class="min-w-full">
-                    <thead>
-                        <tr>
-                            <th class="px-4 py-2">Product</th>
-                            <th class="px-4 py-2">Price</th>
-                            <th class="px-4 py-2">Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dynamically generated rows for added products -->
-                    </tbody>
-                </table>
-                <div class="mt-4">
-                    <p class="font-bold">Total: $<span id="total-price">0.00</span></p>
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Generate QR</button>
-                    <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Cash</button>
+        <div class="grid-layout">
+            <!-- Product Table (1) -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-4">Products</h2>
+                <div id="product-table-container" class="bg-gray-100 rounded-lg p-4">
+                    <table class="min-w-full" id="product-table">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2">Product</th>
+                                <th class="px-4 py-2">Price</th>
+                                <th class="px-4 py-2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically generated rows for products -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-        
-        <div>
-            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-                <h2 class="text-xl font-bold mb-4">Sales Brief</h2>
-                <div class="bg-gray-100 rounded-lg p-4">
-                    <p class="font-bold">Income Generated: $<span id="total-income">0.00</span></p>
-                    <p class="font-bold">Total Products Sold: <span id="total-products-sold">0</span></p>
-                    <p class="font-bold">Total Transactions Made: <span id="total-transactions">0</span></p>
-                    <div class="mt-2">
-                        <h3 class="font-semibold">Payment Method Breakdown:</h3>
-                        <p>Cash: <span id="cash-count">0</span></p>
-                        <p>UPI: <span id="upi-count">0</span></p>
+
+            <!-- Invoice/Cart and Sales Brief Tables (2, 3) -->
+            <div class="grid-item-2-3">
+                <!-- Invoice/Cart Table (2) -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
+                    <div id="invoice-table-container" class="bg-gray-100 rounded-lg p-4">
+                        <table class="min-w-full" id="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-2">Product</th>
+                                    <th class="px-4 py-2">Price</th>
+                                    <th class="px-4 py-2">Quantity</th>
+                                    <th class="px-4 py-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamically generated rows for added products -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-bold">Items: <span id="total-item">0</span></p>
+                        <p class="font-bold pb-2">Total: ₹<span id="total-price">0.00</span></p>
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Generate QR</button>
+                        <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Cash</button>
+                    </div>
+                </div>
+
+                <!-- Sales Brief Table (3) -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold mb-4">Sales Brief</h2>
+                    <div class="bg-gray-100 rounded-lg p-4">
+                        <p class="font-bold">Income Generated: ₹<span id="total-income">0.00</span></p>
+                        <p class="font-bold">Total Products Sold: <span id="total-products-sold">0</span></p>
+                        <p class="font-bold">Total Transactions Made: <span id="total-transactions">0</span></p>
+                        <div class="mt-2">
+                            <h3 class="font-semibold">Payment Method Breakdown:</h3>
+                            <p>Cash: <span id="cash-count">0</span></p>
+                            <p>UPI: <span id="upi-count">0</span></p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="bg-gray-800 text-white py-4 mt-10">
+    <footer class="bg-orange-400 text-white py-4 mt-10">
         <div class="container mx-auto text-center">
             <p>&copy; 2025 SnackTrack. All rights reserved.</p>
         </div>
     </footer>
 </body>
+<script>
+    // An array to track the products added to the invoice
+    let invoiceItems = [];
+
+    async function fetchProducts() {
+        try {
+            const response = await fetch('http://localhost:3000/api/products');
+            const products = await response.json();
+
+            const productTableBody = document.querySelector('#product-table tbody');
+            productTableBody.innerHTML = ''; // Clear existing rows
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border px-4 py-2">${product.name}</td>
+                    <td class="border px-4 py-2">₹${product.price.toFixed(2)}</td>
+                    <td class="border px-4 py-2">
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded" onclick="addToInvoice('${product._id}', '${product.name}', ${product.price})">Add</button>
+                    </td>
+                `;
+                productTableBody.appendChild(row);
+            });
+
+            applyScrollPane("product-table", "product-table-container", 14);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    }
+
+    // Add the product to the invoice or update its quantity if already added
+    function addToInvoice(productId, productName, productPrice) {
+        // Check if the product is already in the invoice
+        const existingItem = invoiceItems.find(item => item.productId === productId);
+
+        if (existingItem) {
+            // If already in the invoice, increase the quantity
+            existingItem.quantity += 1;
+        } else {
+            // If not in the invoice, add a new entry
+            invoiceItems.push({
+                productId,
+                productName,
+                price: productPrice,
+                quantity: 1
+            });
+        }
+
+        // Re-render the invoice table
+        renderInvoice();
+    }
+
+    // Render the invoice table and calculate the total
+    function renderInvoice() {
+        const invoiceTableBody = document.querySelector('#invoice-table tbody');
+        invoiceTableBody.innerHTML = ''; // Clear existing rows
+
+        let total = 0;
+        let totalItems = 0;
+
+        // Iterate over the invoiceItems to generate the table rows
+        invoiceItems.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="border px-4 py-2">${item.productName}</td>
+                <td class="border px-4 py-2">₹${item.price.toFixed(2)}</td>
+                <td class="border px-4 py-2">${item.quantity}</td>
+                <td class="border px-4 py-2">
+                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded" onclick="removeFromInvoice('${item.productId}')">Remove</button>
+                </td>
+            `;
+            invoiceTableBody.appendChild(row);
+
+            // Update total and item count
+            total += item.price * item.quantity;
+            totalItems += item.quantity;
+        });
+
+        // Update total price and total items count
+        document.querySelector('#total-item').textContent = totalItems;
+        document.querySelector('#total-price').textContent = total.toFixed(2);
+        // document.querySelector('#total-products-sold').textContent = totalItems;
+    }
+
+    // Remove a product from the invoice
+    function removeFromInvoice(productId) {
+        const itemIndex = invoiceItems.findIndex(item => item.productId === productId);
+        if (itemIndex > -1) {
+            invoiceItems.splice(itemIndex, 1); // Remove the product from the array
+            renderInvoice(); // Re-render the invoice table
+        }
+    }
+
+    // Fetch products on page load
+    fetchProducts();
+
+    function applyScrollPane(tableId, containerId, maxRows) {
+        const table = document.getElementById(tableId);
+        const container = document.getElementById(containerId);
+        const rowCount = table.querySelector("tbody").rows.length;
+
+        if (rowCount > maxRows) {
+            container.classList.add("scrollable");
+            container.style.maxHeight = maxRows === 14 ? "695px" : "300px"; // Adjust max height for Products or Invoice
+        } else {
+            container.classList.remove("scrollable");
+            container.style.maxHeight = "unset";
+        }
+    }
+
+    // Apply scroll pane for Products and Invoice tables
+    applyScrollPane("product-table", "product-table-container", 14);
+    applyScrollPane("invoice-table", "invoice-table-container", 5);
+
+    // Optionally reapply when rows are dynamically added/removed
+</script>
 </html>

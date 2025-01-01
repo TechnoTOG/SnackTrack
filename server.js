@@ -39,6 +39,10 @@ https.get('https://api.ipify.org', (res) => {
 // MongoDB connection
 mongoConnect();
 
+const productsRoutes = require('./routes/products');
+
+app.use('/api', productsRoutes);
+
 // Basic route
 app.get('/', (req, res) => {
     res.render('dashboard');

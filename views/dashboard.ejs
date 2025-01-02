@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnackTrack</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/SnackTrack_text.svg" >
+    <link rel="icon" type="image/svg+xml" href="/assets/logos/SnackTrack_text.svg" >
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .bg-orange-400 {
@@ -38,7 +38,7 @@
 <body>
     <header class="bg-orange-400 text-white py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <a href="#" class="text-lg font-bold"><img src="/assets/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
+            <a href="#" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
             <nav>
                 <ul class="flex space-x-4">
                     <li><a href="#">Home</a></li>
@@ -51,8 +51,7 @@
     </header>
 
     <main class="container mx-auto mt-10">
-        <h1 class="text-3xl font-bold text-center mb-6">Welcome to SnackTrack</h1>
-
+        <h1 class="text-3xl font-bold w-full text-center">Welcome to SnackTrack</h1>       
         <div class="grid-layout">
             <!-- Product Table (1) -->
             <div class="bg-white rounded-lg shadow-md p-6">
@@ -77,7 +76,12 @@
             <div class="grid-item-2-3">
                 <!-- Invoice/Cart Table (2) -->
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
+                    <div class="relative flex items-center">
+                        <!-- Text for SnackTrack -->
+                        <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
+                        <!-- UPI VPA Icon (Clickable) -->
+                        <img src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer" id="upi-icon">
+                    </div>
                     <div id="invoice-table-container" class="bg-gray-100 rounded-lg p-4">
                         <table class="min-w-full" id="invoice-table">
                             <thead>
@@ -114,6 +118,20 @@
                             <p>UPI: <span id="upi-count">0</span></p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Popup for UPI VPA -->
+        <div id="upi-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Enter UPI Virtual Address</h3>
+                    <button id="close-modal" class="text-xl font-bold">×</button>
+                </div>
+                <input type="text" id="upi-input" class="border px-4 py-2 w-full mb-4" placeholder="Enter UPI VPA">
+                <div class="flex justify-end space-x-4">
+                    <button id="cancel-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
+                    <button id="save-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save</button>
                 </div>
             </div>
         </div>
@@ -240,5 +258,80 @@
     applyScrollPane("invoice-table", "invoice-table-container", 5);
 
     // Optionally reapply when rows are dynamically added/removed
+    // Get references to elements
+    const upiIcon = document.getElementById('upi-icon');
+    const upiModal = document.getElementById('upi-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const upiInput = document.getElementById('upi-input');
+    const errorMessage = document.createElement('p'); // Error message element
+
+    // Add styles for error message
+    errorMessage.style.color = 'red';
+    errorMessage.style.fontSize = '0.875rem';
+    errorMessage.style.marginTop = '5px';
+
+    cancelBtn.disabled = true;
+    closeModal.disabled = true;
+
+    // Show the UPI modal when the icon is clicked
+    upiIcon.addEventListener('click', () => {
+        // Retrieve UPI VPA from session storage if available
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        if (savedVpa) {
+            upiInput.value = savedVpa; // Populate the input field with the saved value
+        } else {
+            upiInput.value = ''; // Clear the field if no VPA is saved
+        }
+        upiModal.classList.remove('hidden'); // Show the modal
+    });
+
+    // Close the modal when the close button (×) is clicked
+    closeModal.addEventListener('click', () => {
+        upiModal.classList.add('hidden'); // Hide the modal
+        errorMessage.remove(); // Remove error message when closing the modal
+    });
+
+    // Close the modal when the Cancel button is clicked
+    cancelBtn.addEventListener('click', () => {
+        upiModal.classList.add('hidden'); // Hide the modal
+        errorMessage.remove(); // Remove error message when cancelling
+    });
+
+    // Check if UPI VPA exists in session storage on page load
+    window.onload = () => {
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        if (!savedVpa) {
+            // Show the UPI modal if no VPA is saved
+            upiModal.classList.remove('hidden');
+        }
+    };
+
+    // Save the UPI VPA to sessionStorage and close the modal
+    saveBtn.addEventListener('click', () => {
+        const upiVpa = upiInput.value.trim();
+
+        // Remove any previous error message before validating
+        errorMessage.remove();
+
+        if (upiVpa) {
+            // Validate that the UPI VPA contains '@'
+            if (upiVpa.includes('@')) {
+                cancelBtn.disabled = false;
+                closeModal.disabled = false;
+                sessionStorage.setItem('upiVpa', upiVpa); // Save the UPI VPA to sessionStorage
+                upiModal.classList.add('hidden'); // Hide the modal
+            } else {
+                // Show error message if the validation fails
+                errorMessage.textContent = 'Please enter a valid UPI VPA (must contain "@")';
+                upiInput.after(errorMessage); // Append error message after the input field
+            }
+        } else {
+            // Show error message if the input is empty
+            errorMessage.textContent = 'UPI VPA cannot be empty.';
+            upiInput.after(errorMessage); // Append error message after the input field
+        }
+    });
 </script>
 </html>

@@ -4,16 +4,38 @@ const mongoose = require('mongoose');
 const QRCode = require('qrcode');
 const mongoConnect = require('../db/mongodb');
 
-// Middleware to ensure the database is connected
-mongoConnect();
+// Define the schema for transactions outside the function
+const transactionSchema = new mongoose.Schema({
+    tran_id: String,
+    custname: String,
+    custmobile: String,
+    items: Array,
+    amount: Number,
+    qr: String, // QR Code stored as base64 string
+    mode: String,
+    status: String,
+    date: { type: String }, // Human-readable date
+    time: { type: String }, // Human-readable time
+});
+
+// Pre-save middleware to add the date and time
+transactionSchema.pre('save', function (next) {
+    const currentDate = new Date();
+    this.date = currentDate.toLocaleDateString(); // e.g., "12/30/2024"
+    this.time = currentDate.toLocaleTimeString(); // e.g., "10:00:00 AM"
+    next();
+});
+
+// Use a global model variable to prevent overwriting
+const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema, 'transactions');
 
 // POST route to generate a QR code and save the transaction
 router.post('/gen-qr', async (req, res) => {
     try {
         const { upi_id, amt, tran_id, items, custname, custmobile } = req.body;
-
+        
         // Create the UPI URI for the QR code
-        const UPI_URI = `upi://pay?pa=${upi_id}&tr=${tran_id}&tn=Invoice%20No:%20${tran_id}&am=${amt}&cu=INR;`;
+        const UPI_URI = `upi://pay?pa=${upi_id}&pn=Invoice%20No:%20${tran_id}&am=${amt}&cu=INR`;
 
         // Generate a QR code as a base64 string
         const qrCodeData = await QRCode.toDataURL(UPI_URI, {
@@ -40,31 +62,6 @@ router.post('/gen-qr', async (req, res) => {
 // Function to add a transaction to MongoDB
 async function addTransaction(tran_id, custname, custmobile, items, amount, qr) {
     try {
-        // Define the schema for transactions
-        const transactionSchema = new mongoose.Schema({
-            tran_id: String,
-            custname: String,
-            custmobile: String,
-            items: Array,
-            amount: Number,
-            qr: String, // QR Code stored as base64 string
-            mode: String,
-            status: String,
-            date: { type: String }, // Human-readable date
-            time: { type: String }, // Human-readable time
-        });
-
-        // Pre-save middleware to add the date and time
-        transactionSchema.pre('save', function (next) {
-            const currentDate = new Date();
-            this.date = currentDate.toLocaleDateString(); // e.g., "12/30/2024"
-            this.time = currentDate.toLocaleTimeString(); // e.g., "10:00:00 AM"
-            next();
-        });
-
-        // Create a model for the "transactions" collection
-        const Transaction = mongoose.model('Transaction', transactionSchema, 'transactions');
-
         // Create and save the transaction
         const newTransaction = new Transaction({
             tran_id,

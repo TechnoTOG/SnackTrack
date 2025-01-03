@@ -15,7 +15,6 @@ router.get('/products', async (req, res) => {
     try {
         // Fetch all products using Mongoose model
         const productList = await Product.find({}).lean();
-        console.log(productList);  // Print the product list
         res.json(productList);  // Return the product list as JSON
     } catch (error) {
         console.error(error);  // Log any error

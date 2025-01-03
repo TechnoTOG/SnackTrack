@@ -40,8 +40,10 @@ https.get('https://api.ipify.org', (res) => {
 mongoConnect();
 
 const productsRoutes = require('./routes/products');
+const genQRRoutes = require('./routes/genQR');
 
 app.use('/api', productsRoutes);
+app.use('/api', genQRRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

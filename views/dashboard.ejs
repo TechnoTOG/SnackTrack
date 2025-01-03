@@ -51,8 +51,8 @@
     </header>
 
     <main class="container mx-auto mt-10">
-        <h1 class="text-3xl font-bold w-full text-center">Welcome to SnackTrack</h1>       
-        <div class="grid-layout">
+        <h1 class="text-3xl font-bold w-full text-center ">Welcome to SnackTrack</h1>       
+        <div class="grid-layout px-4">
             <!-- Product Table (1) -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold mb-4">Products</h2>
@@ -179,6 +179,7 @@
 <script>
     // An array to track the products added to the invoice
     let invoiceItems = [];
+    var mongoID;
 
     async function fetchProducts() {
         try {
@@ -389,12 +390,6 @@
     genQRerrorMessage.style.fontSize = '0.875rem';
     genQRerrorMessage.style.marginTop = '5px';
 
-    // Collect items from the invoice/cart
-    const items = invoiceItems.map(item => ({
-        name: item.productName,
-        quantity: item.quantity
-    }));
-
     // Show the modal when Generate QR button is clicked
     document.querySelector('.bg-blue-500').addEventListener('click', () => {
         qrModal.classList.remove('hidden');
@@ -436,6 +431,7 @@
         const transactionID = generateTransactionID();
         const customerName = customerNameInput.value.trim();
         const customerMobile = customerMobileInput.value.trim();
+        const itemcnt = document.querySelector('#total-item').textContent;
 
         // Validate inputs
         if (!customerName || !customerMobile) {
@@ -446,6 +442,12 @@
         }
 
         try {
+            // Collect items from the invoice/cart
+            const items = invoiceItems.map(item => ({
+                name: item.productName,
+                quantity: item.quantity
+            }));
+
             // Send POST request to /api/gen-qr
             const response = await fetch('/api/gen-qr', {
                 method: 'POST',
@@ -456,7 +458,8 @@
                     tran_id: transactionID,
                     items: items,
                     custname: customerName, 
-                    custmobile: customerMobile
+                    custmobile: customerMobile,
+                    itemcnt: itemcnt
                 }),
             });
 
@@ -467,11 +470,11 @@
 
             // Update UI with QR code
             qrCodeImage.src = `${data.qrCode}`;
+            mongoID = data.mongotransactionId;
             customerDetailsSection.classList.add('hidden');
             qrDisplaySection.classList.remove('hidden');
         } catch (error) {
-            console.error(error);
-            console.error('An error occurred while generating the QR code.');
+            console.error('An error occurred while generating the QR code.',error);
         }
     });
 
@@ -482,15 +485,14 @@
             const response = await fetch('/api/complete-transaction', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({mongoID: mongoID}),
             });
 
             if (!response.ok) throw new Error('Failed to complete the transaction.');
 
-            alert('Transaction completed successfully!');
             closeModalHandler(); // Close the modal
         } catch (error) {
-            console.error(error);
-            alert('An error occurred while completing the transaction.');
+            console.error('An error occurred while completing the transaction.',error);
         }
     });
 

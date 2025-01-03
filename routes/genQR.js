@@ -11,6 +11,7 @@ const transactionSchema = new mongoose.Schema({
     custmobile: String,
     items: Array,
     amount: Number,
+    total_item: Number,
     qr: String, // QR Code stored as base64 string
     mode: String,
     status: String,
@@ -32,7 +33,7 @@ const Transaction = mongoose.models.Transaction || mongoose.model('Transaction',
 // POST route to generate a QR code and save the transaction
 router.post('/gen-qr', async (req, res) => {
     try {
-        const { upi_id, amt, tran_id, items, custname, custmobile } = req.body;
+        const { upi_id, amt, tran_id, items, custname, custmobile, itemcnt } = req.body;
         
         // Create the UPI URI for the QR code
         const UPI_URI = `upi://pay?pa=${upi_id}&pn=Invoice%20No:%20${tran_id}&am=${amt}&cu=INR`;
@@ -46,12 +47,13 @@ router.post('/gen-qr', async (req, res) => {
             width: 300, // Custom size
         });
 
-        // Save the transaction to the database
-        await addTransaction(tran_id, custname, custmobile, items, amt, qrCodeData);
+        // Save the transaction to the database and get the saved transaction
+        const savedTransaction = await addTransaction(tran_id, custname, custmobile, items, amt, itemcnt, qrCodeData);
 
         res.status(200).json({
             message: 'QR code generated and transaction saved successfully.',
             qrCode: qrCodeData,
+            mongotransactionId: savedTransaction._id, // Include the _id in the response
         });
     } catch (error) {
         console.error('Error generating QR code or saving transaction:', error);
@@ -60,7 +62,7 @@ router.post('/gen-qr', async (req, res) => {
 });
 
 // Function to add a transaction to MongoDB
-async function addTransaction(tran_id, custname, custmobile, items, amount, qr) {
+async function addTransaction(tran_id, custname, custmobile, items, amount, total_item, qr) {
     try {
         // Create and save the transaction
         const newTransaction = new Transaction({
@@ -69,13 +71,16 @@ async function addTransaction(tran_id, custname, custmobile, items, amount, qr) 
             custmobile,
             items,
             amount,
+            total_item,
             qr,
-            mode : "UPI",
-            status : "Pending",
+            mode: "UPI",
+            status: "Pending"
         });
 
-        await newTransaction.save();
-        console.log('Transaction saved to MongoDB.');
+        // Save the transaction and return the saved transaction object
+        const savedTransaction = await newTransaction.save();
+        console.log(`Transaction saved to MongoDB with _id: ${savedTransaction._id}, Status: Pending`);
+        return savedTransaction; // Return the saved transaction with _id
     } catch (error) {
         console.error('Error saving transaction to MongoDB:', error);
         throw error;

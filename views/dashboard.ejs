@@ -112,6 +112,7 @@
                         <p class="font-bold">Income Generated: ₹<span id="total-income">0.00</span></p>
                         <p class="font-bold">Total Products Sold: <span id="total-products-sold">0</span></p>
                         <p class="font-bold">Total Transactions Made: <span id="total-transactions">0</span></p>
+                        <p class="font-bold">Pending Transactions: <span id="pending-transactions">0</span></p>
                         <div class="mt-2">
                             <h3 class="font-semibold">Payment Method Breakdown:</h3>
                             <p>Cash: <span id="cash-count">0</span></p>
@@ -137,7 +138,7 @@
         </div>
         <!-- Modal Popup for Customer Details and QR -->
         <div id="qr-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96" id="qr-frame">
                 <div id="customer-details-section">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-bold">Enter Customer Details</h3>
@@ -157,17 +158,33 @@
                         <h3 class="text-xl font-bold">Scan QR Code</h3>
                         <button id="close-modal-qr" class="text-xl font-bold">×</button>
                     </div>
-                    <div id="qr-code-container" class="flex justify-center items-center mb-4">
-                        <!-- QR Code Image will be inserted dynamically -->
-                        <img id="qr-code-image" class="w-48 h-48" src="" alt="QR Code">
+                    <div class="flex">
+                        <div id="qr-code-container" class="flex justify-center items-center mb-4 mr-4">
+                            <!-- QR Code Image will be inserted dynamically -->
+                            <img id="qr-code-image" class="w-48 h-48" src="" alt="QR Code">
+                        </div>
+                        <div id="cart-items-section" class="bg-gray-100 rounded-lg p-4">
+                            <h4 class="font-bold">Cart Items:</h4>
+                            <table class="min-w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr>
+                                        <th class="border border-gray-300 px-4 py-2">Item</th>
+                                        <th class="border border-gray-300 px-4 py-2">Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cart-items-list">
+                                    <!-- Cart items will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                            <p class="font-bold mt-2">Total: ₹<span id="qr-total-price">0.00</span></p>
+                        </div>
                     </div>
                     <div class="flex justify-end space-x-4">
-                        <button id="complete-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Complete</button>
+                        <button id="complete-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-3">Complete</button>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 
     <footer class="bg-orange-400 text-white py-4 mt-10">
@@ -404,6 +421,8 @@
         customerNameInput.value = '';
         customerMobileInput.value = '';
         qrCodeImage.src = '';
+        const element = document.getElementById('qr-frame');
+        element.classList.add('w-96');
     }
     qcloseModal.addEventListener('click', closeModalHandler);
     closeModalQR.addEventListener('click', closeModalHandler);
@@ -468,9 +487,28 @@
 
             const data = await response.json();
 
+            const element = document.getElementById('qr-frame');
+            element.classList.remove('w-96');
+
             // Update UI with QR code
             qrCodeImage.src = `${data.qrCode}`;
             mongoID = data.mongotransactionId;
+
+            // Populate cart items in the table
+            const cartItemsList = document.getElementById('cart-items-list');
+            cartItemsList.innerHTML = ''; // Clear previous items
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${item.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                `;
+                cartItemsList.appendChild(row);
+            });
+
+            // Set total price
+            document.getElementById('qr-total-price').textContent = amt;
+
             customerDetailsSection.classList.add('hidden');
             qrDisplaySection.classList.remove('hidden');
         } catch (error) {
@@ -490,11 +528,53 @@
 
             if (!response.ok) throw new Error('Failed to complete the transaction.');
 
+            // Clear the invoice/cart table
+            const cartTableBody = document.querySelector('#invoice-table tbody'); // Select the table body
+            if (cartTableBody) {
+                cartTableBody.innerHTML = ''; // Clear all rows
+            }
+
+            const element = document.getElementById('qr-frame');
+            element.classList.add('w-96');
+
+            // Reset the total items and price
+            document.getElementById('total-item').textContent = '0'; // Update total items to 0
+            document.getElementById('total-price').textContent = '0.00'; // Update total price to ₹0.00
+
             closeModalHandler(); // Close the modal
+            fetchSalesBrief(); // Refresh Sales Brief
         } catch (error) {
             console.error('An error occurred while completing the transaction.',error);
         }
     });
+
+    // Fetch sales brief data from the server and update the dashboard
+    async function fetchSalesBrief() {
+        try {
+            const response = await fetch('/api/sales-brief');
+            if (!response.ok) {
+                throw new Error('Failed to fetch sales brief data');
+            }
+
+            const salesData = await response.json();
+
+            // Update the UI with the fetched sales data
+            document.getElementById('total-income').textContent = `${salesData.totalIncome.toFixed(2)}`;
+            document.getElementById('total-products-sold').textContent = salesData.totalProductsSold;
+            document.getElementById('total-transactions').textContent = salesData.totalTransactions;
+            document.getElementById('pending-transactions').textContent = salesData.pendingTransactions;
+            document.getElementById('cash-count').textContent = salesData.totalCashTransactions;
+            document.getElementById('upi-count').textContent = salesData.totalUPITransactions;
+
+        } catch (error) {
+            console.error('An error occurred while fetching sales brief data:', error);
+        }
+    }
+
+    // Call the function on page load to initialize the dashboard
+    window.onload = () => {
+        fetchSalesBrief();
+    };
 
 </script>
 </html>

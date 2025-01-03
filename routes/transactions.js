@@ -46,4 +46,33 @@ router.post('/complete-transaction', async (req, res) => {
     }
 });
 
+// Route to handle GET request for sales brief
+router.get('/sales-brief', async (req, res) => {
+    try {
+        // Fetch only transactions with status "Completed"
+        const completedTransactions = await Transaction.find().lean();
+
+        // Aggregate the sales brief details
+        const totalIncome = completedTransactions.filter(txn => txn.status === 'Completed').reduce((sum, txn) => sum + parseFloat(txn.amount), 0);
+        const totalProductsSold = completedTransactions.reduce((sum, txn) => sum + parseInt(txn.total_item), 0);
+        const totalTransactions = completedTransactions.length;
+        const pendingTransactions = completedTransactions.filter(txn => txn.status === 'Pending').length;
+        const totalCashTransactions = completedTransactions.filter(txn => txn.mode === 'Cash').length;
+        const totalUPITransactions = completedTransactions.filter(txn => txn.mode === 'UPI').length;
+
+        // Send the response
+        res.json({
+            totalIncome,
+            totalProductsSold,
+            totalTransactions,
+            pendingTransactions,
+            totalCashTransactions,
+            totalUPITransactions
+        });
+    } catch (error) {
+        console.error('Error fetching sales brief:', error);
+        res.status(500).json({ error: 'Failed to fetch sales brief' });
+    }
+});
+
 module.exports = router;

@@ -135,6 +135,39 @@
                 </div>
             </div>
         </div>
+        <!-- Modal Popup for Customer Details and QR -->
+        <div id="qr-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <div id="customer-details-section">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">Enter Customer Details</h3>
+                        <button id="qclose-modal" class="text-xl font-bold">×</button>
+                    </div>
+                    <p class="text-base">Customer Name</p>
+                    <input type="text" id="customer-name" class="border px-4 py-2 w-full mb-4" placeholder="Enter Customer Name">
+                    <p class="text-base">Customer Mobile</p>
+                    <input type="text" id="customer-mobile" class="border px-4 py-2 w-full mb-4" placeholder="Enter Mobile Number">
+                    <div class="flex justify-end space-x-4">
+                        <button id="qcancel-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
+                        <button id="qnext-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+                    </div>
+                </div>
+                <div id="qr-display-section" class="hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">Scan QR Code</h3>
+                        <button id="close-modal-qr" class="text-xl font-bold">×</button>
+                    </div>
+                    <div id="qr-code-container" class="flex justify-center items-center mb-4">
+                        <!-- QR Code Image will be inserted dynamically -->
+                        <img id="qr-code-image" class="w-48 h-48" src="" alt="QR Code">
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button id="complete-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Complete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <footer class="bg-orange-400 text-white py-4 mt-10">
@@ -305,6 +338,9 @@
         if (!savedVpa) {
             // Show the UPI modal if no VPA is saved
             upiModal.classList.remove('hidden');
+        }else{
+            cancelBtn.disabled = false;
+            closeModal.disabled = false;
         }
     };
 
@@ -333,5 +369,130 @@
             upiInput.after(errorMessage); // Append error message after the input field
         }
     });
+
+    // References to modal and elements
+    const qrModal = document.getElementById('qr-modal');
+    const customerDetailsSection = document.getElementById('customer-details-section');
+    const qrDisplaySection = document.getElementById('qr-display-section');
+    const qcloseModal = document.getElementById('qclose-modal');
+    const closeModalQR = document.getElementById('close-modal-qr');
+    const qcancelBtn = document.getElementById('qcancel-btn');
+    const qnextBtn = document.getElementById('qnext-btn');
+    const completeBtn = document.getElementById('complete-btn');
+    const customerNameInput = document.getElementById('customer-name');
+    const customerMobileInput = document.getElementById('customer-mobile');
+    const qrCodeImage = document.getElementById('qr-code-image');
+    const genQRerrorMessage = document.createElement('p'); // Error message element
+
+    // Add styles for error message
+    genQRerrorMessage.style.color = 'red';
+    genQRerrorMessage.style.fontSize = '0.875rem';
+    genQRerrorMessage.style.marginTop = '5px';
+
+    // Collect items from the invoice/cart
+    const items = invoiceItems.map(item => ({
+        name: item.productName,
+        quantity: item.quantity
+    }));
+
+    // Show the modal when Generate QR button is clicked
+    document.querySelector('.bg-blue-500').addEventListener('click', () => {
+        qrModal.classList.remove('hidden');
+        customerDetailsSection.classList.remove('hidden');
+        qrDisplaySection.classList.add('hidden');
+    });
+
+    // Close modal
+    function closeModalHandler() {
+        qrModal.classList.add('hidden');
+        genQRerrorMessage.remove();
+        customerNameInput.value = '';
+        customerMobileInput.value = '';
+        qrCodeImage.src = '';
+    }
+    qcloseModal.addEventListener('click', closeModalHandler);
+    closeModalQR.addEventListener('click', closeModalHandler);
+    qcancelBtn.addEventListener('click', closeModalHandler);
+
+    function generateTransactionID() {
+        const now = new Date();
+
+        // Get individual date and time components
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Concatenate the components to form the ID
+        return `${year}${month}${day}${hours}${minutes}${seconds}`;
+    }
+
+    // Handle Next Button Click
+    qnextBtn.addEventListener('click', async () => {
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        const amt = document.querySelector('#total-price').textContent;
+        const transactionID = generateTransactionID();
+        const customerName = customerNameInput.value.trim();
+        const customerMobile = customerMobileInput.value.trim();
+
+        // Validate inputs
+        if (!customerName || !customerMobile) {
+            // Show error message if the validation fails
+            genQRerrorMessage.textContent = 'Please fill all the fields';
+            customerMobileInput.after(genQRerrorMessage); // Append error message after the input field
+            return;
+        }
+
+        try {
+            // Send POST request to /api/gen-qr
+            const response = await fetch('/api/gen-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    upi_id: savedVpa,
+                    amt: amt,
+                    tran_id: transactionID,
+                    items: items,
+                    custname: customerName, 
+                    custmobile: customerMobile
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to generate QR code.');
+            genQRerrorMessage.remove();
+
+            const data = await response.json();
+
+            // Update UI with QR code
+            qrCodeImage.src = `${data.qrCode}`;
+            customerDetailsSection.classList.add('hidden');
+            qrDisplaySection.classList.remove('hidden');
+        } catch (error) {
+            console.error(error);
+            console.error('An error occurred while generating the QR code.');
+        }
+    });
+
+    // Handle Complete Button Click
+    completeBtn.addEventListener('click', async () => {
+        try {
+            // Send POST request to /api/complete-transaction
+            const response = await fetch('/api/complete-transaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) throw new Error('Failed to complete the transaction.');
+
+            alert('Transaction completed successfully!');
+            closeModalHandler(); // Close the modal
+        } catch (error) {
+            console.error(error);
+            alert('An error occurred while completing the transaction.');
+        }
+    });
+
 </script>
 </html>

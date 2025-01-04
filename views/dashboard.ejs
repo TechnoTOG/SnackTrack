@@ -245,7 +245,7 @@
 
     async function fetchProducts() {
         try {
-            const response = await fetch('http://localhost:3000/api/products');
+            const response = await fetch('/api/products');
             const products = await response.json();
 
             const productTableBody = document.querySelector('#product-table tbody');
@@ -633,13 +633,13 @@
     const customerNameCashInput = document.getElementById('customer-name-cash');
     const amountReceivedInput = document.getElementById('amount-received');
     const cashSummary = document.getElementById('cash-summary');
-    const transactionID = generateTransactionID();
     const cashCustomerDetails = document.getElementById('cash-customer-details');
     const cashItemsList = document.getElementById('cash-items-list');
     const cashTotalPrice = document.getElementById('cash-total-price');
     const cashAmountReceived = document.getElementById('cash-amount-received');
     const cashBalance = document.getElementById('cash-balance');
     const cashErrorMessage = document.getElementById('cash-error-message');
+    var transactionID;
 
     // Show the cash modal when the Cash button is clicked
     document.querySelector('.bg-green-500').addEventListener('click', () => {
@@ -669,6 +669,7 @@
     nextCashBtn.addEventListener('click', () => {
         const customerName = customerNameCashInput.value.trim();
         const amountReceived = parseFloat(amountReceivedInput.value.trim());
+        const transaction_ID = generateTransactionID();
 
         // Clear previous error message
         cashErrorMessage.textContent = '';
@@ -682,7 +683,7 @@
         // Show the summary section
         cashCustomerDetails.classList.add('hidden');
         cashSummary.classList.remove('hidden');
-        document.getElementById('cash-trans-id').textContent = transactionID;
+        document.getElementById('cash-trans-id').textContent = transaction_ID;
         cashAmountReceived.textContent = amountReceived.toFixed(2);
 
         // Populate the invoice items in the cash summary
@@ -702,13 +703,43 @@
 
         cashTotalPrice.textContent = total.toFixed(2);
         cashBalance.textContent = (amountReceived - total).toFixed(2);
+        transactionID = transaction_ID;
     });
 
     // Handle Confirm Button Click
     document.getElementById('confirm-cash-btn').addEventListener('click', async () => {
         // Logic to handle the confirmation of the cash payment
         // This could involve sending the payment details to the server
+        const amt = document.querySelector('#total-price').textContent;
+        const customerName = customerNameCashInput.value.trim();
+        const itemcnt = document.querySelector('#total-item').textContent;
+
+        // Collect items from the invoice/cart
+        const items = invoiceItems.map(item => ({
+                name: item.productName,
+                quantity: item.quantity
+            }));
+
+        const response = await fetch('/api/cash-transaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tran_id: transactionID,
+                    amt: amt,
+                    items: items,
+                    custname: customerName, 
+                    itemcnt: itemcnt
+                }),
+            });
+
+            // Clear the invoice/cart table
+            const cartTableBody = document.querySelector('#invoice-table tbody'); // Select the table body
+            if (cartTableBody) {
+                cartTableBody.innerHTML = ''; // Clear all rows
+            }
+
         closeCashModalHandler(); // Close the modal after confirmation
+        fetchSalesBrief();
     });
 
     // Handle Cancel Button in Summary

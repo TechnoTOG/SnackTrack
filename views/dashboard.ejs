@@ -176,6 +176,7 @@
                                     <!-- Cart items will be dynamically inserted here -->
                                 </tbody>
                             </table>
+                            <p class="font-bold mt-2">Transaction ID: <span id="trans-id">null</span></p>
                             <p class="font-bold mt-2">Total: ₹<span id="qr-total-price">0.00</span></p>
                         </div>
                     </div>
@@ -185,8 +186,52 @@
                 </div>
             </div>
         </div>
+        <!-- Modal Popup for Cash Payment -->
+        <div id="cash-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Cash Payment</h3>
+                    <button id="close-cash-modal" class="text-xl font-bold">×</button>
+                </div>
+                <div id="cash-customer-details">
+                    <p class="text-base">Customer Name</p>
+                    <input type="text" id="customer-name-cash" class="border px-4 py-2 w-full mb-4" placeholder="Enter Customer Name">
+                    <p class="text-base">Amount Received</p>
+                    <input type="number" id="amount-received" class="border px-4 py-2 w-full mb-4" placeholder="Enter Amount Received">
+                    <div class="flex justify-end space-x-4">
+                        <button id="cancel-cash-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
+                        <button id="next-cash-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+                    </div>
+                    <div id="cash-error-message" class="text-red-500 text-sm mt-2"></div>
+                </div>
+                <div id="cash-summary" class="hidden mt-4">
+                    <div class="bg-gray-100 rounded-lg p-4">
+                        <h4 class="font-bold">Invoice Summary:</h4>
+                        <table class="min-w-full border-collapse border border-gray-300 mt-2">
+                            <thead>
+                                <tr>
+                                    <th class="border border-gray-300 px-4 py-2">Item</th>
+                                    <th class="border border-gray-300 px-4 py-2">Quantity</th>
+                                    <th class="border border-gray-300 px-4 py-2">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cash-items-list">
+                                <!-- Items will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="font-bold mt-2">Transaction ID: <span id="cash-trans-id">null</span></p>
+                    <p class="font-bold">Total: ₹<span id="cash-total-price">0.00</span></p>
+                    <p class="font-bold text-green-500">Amount Received: ₹<span id="cash-amount-received">0.00</span></p>
+                    <p class="font-bold text-red-500">Balance: ₹<span id="cash-balance">0.00</span></p>
+                    <div class="flex justify-end space-x-4">
+                        <button id="cancel-cash-btn-summary" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
+                        <button id="confirm-cash-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Complete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
-
     <footer class="bg-orange-400 text-white py-4 mt-10">
         <div class="container mx-auto text-center">
             <p>&copy; 2025 SnackTrack. All rights reserved.</p>
@@ -409,9 +454,11 @@
 
     // Show the modal when Generate QR button is clicked
     document.querySelector('.bg-blue-500').addEventListener('click', () => {
-        qrModal.classList.remove('hidden');
-        customerDetailsSection.classList.remove('hidden');
-        qrDisplaySection.classList.add('hidden');
+        if(document.querySelector('#total-item').textContent > 0){
+            qrModal.classList.remove('hidden');
+            customerDetailsSection.classList.remove('hidden');
+            qrDisplaySection.classList.add('hidden');
+        }
     });
 
     // Close modal
@@ -423,6 +470,7 @@
         qrCodeImage.src = '';
         const element = document.getElementById('qr-frame');
         element.classList.add('w-96');
+        fetchSalesBrief();
     }
     qcloseModal.addEventListener('click', closeModalHandler);
     closeModalQR.addEventListener('click', closeModalHandler);
@@ -508,6 +556,7 @@
 
             // Set total price
             document.getElementById('qr-total-price').textContent = amt;
+            document.getElementById('trans-id').textContent = transactionID;
 
             customerDetailsSection.classList.add('hidden');
             qrDisplaySection.classList.remove('hidden');
@@ -576,5 +625,93 @@
         fetchSalesBrief();
     };
 
+    // Get references to the cash modal and its elements
+    const cashModal = document.getElementById('cash-modal');
+    const closeCashModal = document.getElementById('close-cash-modal');
+    const cancelCashBtn = document.getElementById('cancel-cash-btn');
+    const nextCashBtn = document.getElementById('next-cash-btn');
+    const customerNameCashInput = document.getElementById('customer-name-cash');
+    const amountReceivedInput = document.getElementById('amount-received');
+    const cashSummary = document.getElementById('cash-summary');
+    const transactionID = generateTransactionID();
+    const cashCustomerDetails = document.getElementById('cash-customer-details');
+    const cashItemsList = document.getElementById('cash-items-list');
+    const cashTotalPrice = document.getElementById('cash-total-price');
+    const cashAmountReceived = document.getElementById('cash-amount-received');
+    const cashBalance = document.getElementById('cash-balance');
+    const cashErrorMessage = document.getElementById('cash-error-message');
+
+    // Show the cash modal when the Cash button is clicked
+    document.querySelector('.bg-green-500').addEventListener('click', () => {
+        if(document.querySelector('#total-item').textContent > 0){
+            cashModal.classList.remove('hidden');
+        }
+    });
+
+    // Close the cash modal
+    function closeCashModalHandler() {
+        cashModal.classList.add('hidden');
+        customerNameCashInput.value = '';
+        amountReceivedInput.value = '';
+        cashSummary.classList.add('hidden');
+        cashCustomerDetails.classList.remove('hidden');
+        cashItemsList.innerHTML = ''; // Clear previous items
+        cashErrorMessage.textContent = ''; // Clear error message
+    }
+
+    // Close modal when the close button (×) is clicked
+    closeCashModal.addEventListener('click', closeCashModalHandler);
+
+    // Close modal when the Cancel button is clicked
+    cancelCashBtn.addEventListener('click', closeCashModalHandler);
+
+    // Handle Next Button Click
+    nextCashBtn.addEventListener('click', () => {
+        const customerName = customerNameCashInput.value.trim();
+        const amountReceived = parseFloat(amountReceivedInput.value.trim());
+
+        // Clear previous error message
+        cashErrorMessage.textContent = '';
+
+        // Validate inputs
+        if (!customerName || isNaN(amountReceived) || amountReceived <= 0) {
+            cashErrorMessage.textContent = 'Please fill all the fields correctly.';
+            return;
+        }
+
+        // Show the summary section
+        cashCustomerDetails.classList.add('hidden');
+        cashSummary.classList.remove('hidden');
+        document.getElementById('cash-trans-id').textContent = transactionID;
+        cashAmountReceived.textContent = amountReceived.toFixed(2);
+
+        // Populate the invoice items in the cash summary
+        cashItemsList.innerHTML = ''; // Clear previous items
+        let total = 0;
+
+        invoiceItems.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="border border-gray-300 px-4 py-2">${item.productName}</td>
+                <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                <td class="border border-gray-300 px-4 py-2">₹${(item.price * item.quantity).toFixed(2)}</td>
+            `;
+            cashItemsList.appendChild(row);
+            total += item.price * item.quantity;
+        });
+
+        cashTotalPrice.textContent = total.toFixed(2);
+        cashBalance.textContent = (amountReceived - total).toFixed(2);
+    });
+
+    // Handle Confirm Button Click
+    document.getElementById('confirm-cash-btn').addEventListener('click', async () => {
+        // Logic to handle the confirmation of the cash payment
+        // This could involve sending the payment details to the server
+        closeCashModalHandler(); // Close the modal after confirmation
+    });
+
+    // Handle Cancel Button in Summary
+    document.getElementById('cancel-cash-btn-summary').addEventListener('click', closeCashModalHandler);
 </script>
 </html>

@@ -46,6 +46,31 @@ router.post('/complete-transaction', async (req, res) => {
     }
 });
 
+// Route to complete a transaction and automatically update a document
+router.post('/cash-transaction', async (req, res) => {
+    const { amt, tran_id, items, custname, itemcnt } = req.body;
+    try {
+        // Create and save the transaction
+        const newTransaction = new Transaction({
+            tran_id,
+            custname,
+            items,
+            amount: amt,
+            total_item: itemcnt,
+            mode: "Cash",
+            status: "Completed"
+        });
+
+        // Save the transaction and return the saved transaction object
+        const savedTransaction = await newTransaction.save();
+        console.log(`Transaction saved to MongoDB with _id: ${savedTransaction._id}, |Customer Name: ${custname}|, Mode: [Cash], Status: Completed`);
+        res.status(200).json({message: 'Cash transaction completed successfully.',}); // Return the saved transaction with _id
+    } catch (error) {
+        console.error('Error saving transaction to MongoDB:', error);
+        throw error;
+    }
+});
+
 // Route to handle GET request for sales brief
 router.get('/sales-brief', async (req, res) => {
     try {

@@ -79,7 +79,7 @@ async function addTransaction(tran_id, custname, custmobile, items, amount, tota
 
         // Save the transaction and return the saved transaction object
         const savedTransaction = await newTransaction.save();
-        console.log(`Transaction saved to MongoDB with _id: ${savedTransaction._id}, Status: Pending`);
+        console.log(`Transaction saved to MongoDB with _id: ${savedTransaction._id}, |Customer Name: ${custname}|, Mode: [UPI], Status: Pending`);
         return savedTransaction; // Return the saved transaction with _id
     } catch (error) {
         console.error('Error saving transaction to MongoDB:', error);

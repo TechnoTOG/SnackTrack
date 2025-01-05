@@ -41,10 +41,10 @@
             <a href="#" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
             <nav>
                 <ul class="flex space-x-4">
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Transactions</a></li>
-                    <li><a href="#">Items</a></li>
-                    <li><a href="#">About Us</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/transactions">Transactions</a></li>
+                    <li><a href="/items">Items</a></li>
+                    <li><a href="/about">About Us</a></li>
                 </ul>
             </nav>
         </div>
@@ -332,9 +332,6 @@
         }
     }
 
-    // Fetch products on page load
-    fetchProducts();
-
     function applyScrollPane(tableId, containerId, maxRows) {
         const table = document.getElementById(tableId);
         const container = document.getElementById(containerId);
@@ -394,18 +391,6 @@
         upiModal.classList.add('hidden'); // Hide the modal
         errorMessage.remove(); // Remove error message when cancelling
     });
-
-    // Check if UPI VPA exists in session storage on page load
-    window.onload = () => {
-        const savedVpa = sessionStorage.getItem('upiVpa');
-        if (!savedVpa) {
-            // Show the UPI modal if no VPA is saved
-            upiModal.classList.remove('hidden');
-        }else{
-            cancelBtn.disabled = false;
-            closeModal.disabled = false;
-        }
-    };
 
     // Save the UPI VPA to sessionStorage and close the modal
     saveBtn.addEventListener('click', () => {
@@ -621,7 +606,18 @@
     }
 
     // Call the function on page load to initialize the dashboard
+    // Check if UPI VPA exists in session storage on page load
     window.onload = () => {
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        if (!savedVpa) {
+            // Show the UPI modal if no VPA is saved
+            upiModal.classList.remove('hidden');
+        }else{
+            cancelBtn.disabled = false;
+            closeModal.disabled = false;
+        }
+        // Fetch products and sales brief on page load
+        fetchProducts();
         fetchSalesBrief();
     };
 

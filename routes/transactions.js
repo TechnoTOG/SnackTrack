@@ -28,7 +28,7 @@ router.post('/complete-transaction', async (req, res) => {
         // Define the fields to be updated (only add "updatedAt" if it doesn't exist)
         const updateFields = {
             status: 'Completed',  // Set a fixed value for the status field
-            updatedAt: document.updatedAt ? document.updatedAt : new Date(), // Only set "updatedAt" if not already present
+            updatedAt: document.updatedAt ? document.updatedAt : new Date().toLocaleTimeString(), // Only set "updatedAt" if not already present
         };
 
         // Update the document with the given mongoID and predefined fields
@@ -55,10 +55,12 @@ router.post('/cash-transaction', async (req, res) => {
             tran_id,
             custname,
             items,
-            amount: amt,
-            total_item: itemcnt,
+            amount: parseInt(amt),
+            total_item: parseInt(itemcnt),
             mode: "Cash",
-            status: "Completed"
+            status: "Completed",
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString()
         });
 
         // Save the transaction and return the saved transaction object
@@ -97,6 +99,17 @@ router.get('/sales-brief', async (req, res) => {
     } catch (error) {
         console.error('Error fetching sales brief:', error);
         res.status(500).json({ error: 'Failed to fetch sales brief' });
+    }
+});
+
+// Route to fetch all transactions
+router.get('/transactions', async (req, res) => {
+    try {
+        const transactions = await Transaction.find().lean(); // Fetch all transactions
+        res.status(200).json(transactions); // Send the transactions as a response
+    } catch(error){
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ message: 'Failed to fetch transactions' });
     }
 });
 

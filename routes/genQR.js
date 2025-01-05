@@ -5,28 +5,7 @@ const QRCode = require('qrcode');
 const mongoConnect = require('../db/mongodb');
 
 // Define the schema for transactions outside the function
-const transactionSchema = new mongoose.Schema({
-    tran_id: String,
-    custname: String,
-    custmobile: String,
-    payee: String,
-    items: Array,
-    amount: Number,
-    total_item: Number,
-    qr: String, // QR Code stored as base64 string
-    mode: String,
-    status: String,
-    date: { type: String }, // Human-readable date
-    time: { type: String }, // Human-readable time
-});
-
-// Pre-save middleware to add the date and time
-transactionSchema.pre('save', function (next) {
-    const currentDate = new Date();
-    this.date = currentDate.toLocaleDateString(); // e.g., "12/30/2024"
-    this.time = currentDate.toLocaleTimeString(); // e.g., "10:00:00 AM"
-    next();
-});
+const transactionSchema = new mongoose.Schema({}, { strict: false });
 
 // Use a global model variable to prevent overwriting
 const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema, 'transactions');
@@ -76,7 +55,9 @@ async function addTransaction(tran_id, custname, custmobile, payee, items, amoun
             total_item,
             qr,
             mode: "UPI",
-            status: "Pending"
+            status: "Pending",
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString()
         });
 
         // Save the transaction and return the saved transaction object

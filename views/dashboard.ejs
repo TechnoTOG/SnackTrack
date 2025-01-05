@@ -52,7 +52,7 @@
 
     <main class="container mx-auto mt-10">
         <h1 class="text-3xl font-bold w-full text-center ">Welcome to SnackTrack</h1>       
-        <div class="grid-layout px-4">
+        <div class="grid-layout px-4 mt-1">
             <!-- Product Table (1) -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold mb-4">Products</h2>
@@ -497,7 +497,8 @@
             // Collect items from the invoice/cart
             const items = invoiceItems.map(item => ({
                 name: item.productName,
-                quantity: item.quantity
+                quantity: item.quantity,
+                price: item.price
             }));
 
             // Send POST request to /api/gen-qr

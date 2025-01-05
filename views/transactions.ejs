@@ -30,7 +30,7 @@
     <main class="container mx-auto mt-10">
         <h1 class="text-3xl font-bold w-full text-center">Transaction History</h1>
         
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-4 m-4">
             <input type="text" id="search-bar" placeholder="Search transactions..." class="border px-4 py-2 w-1/2">
             <select id="filter-options" class="border px-4 py-2">
                 <option value="">All Transactions</option>
@@ -39,21 +39,26 @@
             </select>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <table class="min-w-full" id="transactions-table">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">Transaction ID</th>
-                        <th class="px-4 py-2">Customer Name</th>
-                        <th class="px-4 py-2">Amount</th>
-                        <th class="px-4 py-2">Payment Method</th>
-                        <th class="px-4 py-2">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamically generated rows for transactions -->
-                </tbody>
-            </table>
+        <div class="bg-white rounded-lg shadow-md m-4 p-6">
+            <div id="transactions-table-container" class="bg-gray-100 rounded-lg p-4">
+                <table class="rounded-lg min-w-full" id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2">Transaction ID</th>
+                            <th class="px-4 py-2">Customer Name</th>
+                            <th class="px-4 py-2">Customer Mobile</th>
+                            <th class="px-4 py-2">Items</th>
+                            <th class="px-4 py-2">Amount</th>
+                            <th class="px-4 py-2">Payment Method</th>
+                            <th class="px-4 py-2">Date & Time</th>
+                            <th class="px-4 py-2">Completion Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically generated rows for transactions -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -82,12 +87,16 @@
 
             transactions.forEach(transaction => {
                 const row = document.createElement('tr');
+                const itemsList = transaction.items.map(item => `${item.name} (Qty: ${item.quantity}) price: ₹${item.price}`).join('<br>');
                 row.innerHTML = `
-                    <td class="border px-4 py-2">${transaction.transactionId}</td>
-                    <td class="border px-4 py-2">${transaction.customerName}</td>
+                    <td class="border px-4 py-2">${transaction.tran_id}</td>
+                    <td class="border px-4 py-2">${transaction.custname}</td>
+                    <td class="border px-4 py-2">${transaction.custmobile ? transaction.custmobile : 'Not Recorded'}</td>
+                    <td class="border px-4 py-2">${itemsList}</td>
                     <td class="border px-4 py-2">₹${transaction.amount.toFixed(2)}</td>
-                    <td class="border px-4 py-2">${transaction.paymentMethod}</td>
-                    <td class="border px-4 py-2">${new Date(transaction.date).toLocaleDateString()}</td>
+                    <td class="border px-4 py-2">${transaction.mode}</td>
+                    <td class="border px-4 py-2">${transaction.date + " " + transaction.time}</td>
+                    ${transaction.mode === 'Cash' ? `<td class="border px-4 py-2">${transaction.time}</td>` : `<td class="border px-4 py-2">${transaction.updatedAt}</td>`}
                 `;
                 transactionsTableBody.appendChild(row);
             });
@@ -109,7 +118,7 @@
             const filterValue = this.value;
             const rows = document.querySelectorAll('#transactions-table tbody tr');
             rows.forEach(row => {
-                const paymentMethodCell = row.cells[3].textContent.toLowerCase();
+                const paymentMethodCell = row.cells[5].textContent.toLowerCase();
                 if (filterValue === '' || paymentMethodCell === filterValue) {
                     row.style.display = '';
                 } else {

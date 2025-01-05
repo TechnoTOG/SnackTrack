@@ -9,6 +9,7 @@ const transactionSchema = new mongoose.Schema({
     tran_id: String,
     custname: String,
     custmobile: String,
+    payee: String,
     items: Array,
     amount: Number,
     total_item: Number,
@@ -48,7 +49,7 @@ router.post('/gen-qr', async (req, res) => {
         });
 
         // Save the transaction to the database and get the saved transaction
-        const savedTransaction = await addTransaction(tran_id, custname, custmobile, items, amt, itemcnt, qrCodeData);
+        const savedTransaction = await addTransaction(tran_id, custname, custmobile, upi_id, items, amt, itemcnt, qrCodeData);
 
         res.status(200).json({
             message: 'QR code generated and transaction saved successfully.',
@@ -62,13 +63,14 @@ router.post('/gen-qr', async (req, res) => {
 });
 
 // Function to add a transaction to MongoDB
-async function addTransaction(tran_id, custname, custmobile, items, amount, total_item, qr) {
+async function addTransaction(tran_id, custname, custmobile, payee, items, amount, total_item, qr) {
     try {
         // Create and save the transaction
         const newTransaction = new Transaction({
             tran_id,
             custname,
             custmobile,
+            payee,
             items,
             amount,
             total_item,

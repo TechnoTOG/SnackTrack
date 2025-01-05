@@ -47,14 +47,29 @@ app.use('/api', productsRoutes);
 app.use('/api', transactionsRoutes);
 app.use('/api', genQRRoutes);
 
-// Basic route
+// Dashboard route
 app.get('/', (req, res) => {
     res.render('dashboard');
 });
 
-// Example route for handling items (you can customize based on your app needs)
-app.get('/api/items', (req, res) => {
-    res.json({ message: 'Items endpoint to be implemented' });
+// Transaction route
+app.get('/transactions', (req, res) => {
+  res.render('transactions');
+});
+
+// Inventory/Item route
+app.get('/items', (req, res) => {
+  res.render('items');
+});
+
+// About route
+app.get('/about', (req, res) => {
+  res.render('about');
+});
+
+// QR-Display route
+app.get('/qr-display', (req, res) => {
+  res.render('qrDisplay');
 });
 
 // Start server

@@ -38,7 +38,7 @@
 <body>
     <header class="bg-orange-400 text-white py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
-            <a href="#" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
+            <a href="/" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
             <nav>
                 <ul class="flex space-x-4">
                     <li><a href="/">Home</a></li>
@@ -479,11 +479,11 @@
     // Handle Next Button Click
     qnextBtn.addEventListener('click', async () => {
         const savedVpa = sessionStorage.getItem('upiVpa');
-        const amt = document.querySelector('#total-price').textContent;
+        const amt = parseInt(document.querySelector('#total-price').textContent);
         const transactionID = generateTransactionID();
         const customerName = customerNameInput.value.trim();
         const customerMobile = customerMobileInput.value.trim();
-        const itemcnt = document.querySelector('#total-item').textContent;
+        const itemcnt = parseInt(document.querySelector('#total-item').textContent);
 
         // Validate inputs
         if (!customerName || !customerMobile) {

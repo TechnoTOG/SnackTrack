@@ -6,6 +6,7 @@
     <title>SnackTrack</title>
     <link rel="icon" type="image/svg+xml" href="/assets/logos/SnackTrack_text.svg" >
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/flowbite@1.6.0/dist/flowbite.min.js"></script>
     <style>
         .bg-orange-400 {
             background-color: #ff9c2b; /* Orange */
@@ -80,7 +81,11 @@
                         <!-- Text for SnackTrack -->
                         <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
                         <!-- UPI VPA Icon (Clickable) -->
-                        <img src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer" id="upi-icon">
+                        <img data-tooltip-target="tooltip-light" data-tooltip-style="light" src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer " id="upi-icon">
+                        <div id="tooltip-light" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-small text-gray-900 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 tooltip">
+                            Enter UPI VPA
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
                     </div>
                     <div id="invoice-table-container" class="bg-gray-100 rounded-lg p-4">
                         <table class="min-w-full" id="invoice-table">
@@ -714,7 +719,8 @@
         // Collect items from the invoice/cart
         const items = invoiceItems.map(item => ({
                 name: item.productName,
-                quantity: item.quantity
+                quantity: item.quantity,
+                price: item.price
             }));
 
         const response = await fetch('/api/cash-transaction', {

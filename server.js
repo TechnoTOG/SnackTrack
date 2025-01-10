@@ -10,7 +10,7 @@ const mongoConnect = require("./db/mongodb"); // MongoDB connection utility
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WEBSOCKET_PORT = process.env.WEBSOCKET_PORT || 8080;
+const WEBSOCKET_PORT = process.env.WEBSOCKET_PORT || 10000;
 
 // Middleware
 app.use(cors());

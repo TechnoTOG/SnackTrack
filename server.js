@@ -162,6 +162,83 @@ app.post("/api/send-notification", async (req, res) => {
   }
 });
 
+app.get("/api/fetch-qr", async (req, res) => {
+  try {
+    const transactionsCollection = mongoose.connection.db.collection("transactions");
+
+    const latestTransaction = await transactionsCollection.aggregate([
+      {
+        $match: { mode: "UPI", status: "Pending" } // Filter for documents where mode is "UPI"
+      },
+      {
+        $addFields: {
+          // Fix time format by removing any trailing colon before AM/PM
+          fixedTime: {
+            $cond: {
+              if: { $regexMatch: { input: "$time", regex: /.*:.*:[0-9]{2} [APM]{2}/ } }, // Match if time has extra colon
+              then: {
+                $substrCP: [
+                  "$time", 
+                  0, 
+                  { $subtract: [{ $strLenCP: "$time" }, 3] } // Remove last 3 characters (the trailing ":PM" or ":AM")
+                ]
+              },
+              else: "$time" // No modification needed if already in correct format
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Combine date and fixed time to a single string in the correct format
+          combinedDateTime: {
+            $concat: [
+              "$date", " ",
+              "$fixedTime"
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Convert the combined date-time string to a MongoDB Date object
+          combinedDateTimeObject: {
+            $dateFromString: {
+              dateString: "$combinedDateTime",
+              format: "%m/%d/%Y %H:%M:%S" // Use 24-hour format without AM/PM
+            }
+          }
+        }
+      },
+      {
+        $sort: { combinedDateTimeObject: -1 } // Sort by the combined date-time field in descending order
+      },
+      {
+        $limit: 1 // Limit to the latest document
+      }
+    ]).toArray();
+    
+
+    if (latestTransaction.length === 0) {
+      return res.status(404).json({ error: "No UPI transactions found" });
+    }
+
+    const qrData = latestTransaction[0]; // Extract the QR code data
+    const response = {
+      qr: qrData.qr,
+      custname: qrData.custname,
+      amount: qrData.amount,
+      date: qrData.date,
+      time: qrData.time
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching QR code:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Start server
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

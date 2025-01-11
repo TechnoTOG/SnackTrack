@@ -5,12 +5,12 @@ const WebSocket = require("ws");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
+const http = require("http"); // Import the http module
 const mongoConnect = require("./db/mongodb"); // MongoDB connection utility
 
 // Initialize app
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WEBSOCKET_PORT = process.env.WEBSOCKET_PORT || 8080;
 
 // Middleware
 app.use(cors());
@@ -84,8 +84,11 @@ app.get("/qr-display", (req, res) => {
   res.render("qrDisplay");
 });
 
+// Create an HTTP server
+const server = http.createServer(app);
+
 // WebSocket server
-const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
+const wss = new WebSocket.Server({ server });
 const clients = new Map();
 
 wss.on("connection", (ws) => {
@@ -160,6 +163,6 @@ app.post("/api/send-notification", async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

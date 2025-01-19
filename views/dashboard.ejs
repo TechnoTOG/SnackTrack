@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnackTrack</title>
     <link rel="icon" type="image/svg+xml" href="/assets/logos/SnackTrack_text.svg" >
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.22.0/dist/full.css" rel="stylesheet">
     <script src="https://unpkg.com/flowbite@1.6.0/dist/flowbite.min.js"></script>
     <style>
         .bg-orange-400 {
-            background-color: #ff9c2b; /* Orange */
+            background-color: #FFF0CB; /* Orange */
         }
 
         .grid-layout {
@@ -23,6 +24,7 @@
             flex-direction: column;
             gap: 1.5rem; /* Gap between stacked items */
         }
+        
         .scrollable {
             overflow-y: auto;
         }
@@ -34,12 +36,63 @@
         .max-height-invoice {
             max-height: 200px; /* Adjust based on visible rows for Invoice */
         }
+        
+        table.table-zebra tbody tr:nth-child(even) > * {
+          background-color: #f1f3f6;
+        }
+
+        table.table-zebra thead th {
+            background-color: #f1f3f6;
+        }
+
+        #gen-upi.btn-primary {
+            background-color: #1b48fa; /* Custom primary color */
+            color: #ffffff; /* Text color */
+            border: 1px solid #1b48fa; /* Optional border */
+        }
+
+        #gen-upi.btn-primary:hover {
+            background-color: #2147dc; /* Hover color */
+        }
+
+        .btn-outline.btn-primary {
+            color: #1b48fa; /* Text color */
+            border-color: #1b48fa; /* Outline color */
+        }
+
+        .btn-outline.btn-primary:hover {
+            background-color: #2147dc; /* Background on hover */
+            color: white; /* Text color on hover */
+            border-color: #2147dc; /* Retain the border color */
+        }
+
+        #cash-pay.btn-success {
+            background-color: #02c2af; /* Custom primary color */
+            color: #ffffff; /* Text color */
+            border: 1px solid #02c2af; /* Optional border */
+        }
+
+        #cash-pay.btn-success:hover {
+            background-color: #009485; /* Hover color */
+        }
+
+        .btn-outline.btn-error {
+            color: #ff2424; /* Custom primary color */
+            border-color: #ff2424; /* Optional border */
+        }
+
+        .btn-outline.btn-error:hover {
+            background-color: #d92020; /* Hover color */
+            color: white; /* Text color on hover */
+            border-color: #d92020; /* Retain the border color */
+        }
     </style>
 </head>
-<body>
-    <header class="bg-orange-400 text-white py-4">
-        <div class="container mx-auto flex justify-between items-center px-4">
-            <nav>
+<body class="bg-white text-black">
+    <header class="bg-orange-400 text-yellow-500 py-4">
+        <div class="container mx-auto flex justify-start items-center px-4">
+            <a href="/" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg2.png" alt="SnackTrack" width="60" height="60"></a>
+            <nav class="pl-8">
                 <ul class="flex space-x-4">
                     <li><a href="/">Home</a></li>
                     <li><a href="/transactions">Transactions</a></li>
@@ -51,18 +104,18 @@
     </header>
 
     <main class="container mx-auto mt-10">
-        <h1 class="text-3xl font-bold w-full text-center ">Welcome to SnackTrack</h1>       
+        <h1 class="text-3xl font-bold w-full text-center">Welcome to SnackTrack</h1>
         <div class="grid-layout px-4 mt-1">
             <!-- Product Table (1) -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-bold mb-4">Products</h2>
-                <div id="product-table-container" class="bg-gray-100 rounded-lg p-4">
-                    <table class="min-w-full" id="product-table">
+            <div class="card bg-white shadow-xl p-6">
+                <h2 class="card-title">Products</h2>
+                <div id="product-table-container" class="bg-white rounded-lg p-4 overflow-x-auto">
+                    <table class="min-w-full table table-pin-cols table-zebra" id="product-table">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2">Product</th>
-                                <th class="px-4 py-2">Price</th>
-                                <th class="px-4 py-2">Action</th>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,19 +128,17 @@
             <!-- Invoice/Cart and Sales Brief Tables (2, 3) -->
             <div class="grid-item-2-3">
                 <!-- Invoice/Cart Table (2) -->
-                <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="card bg-white shadow-xl p-6">
                     <div class="relative flex items-center">
-                        <!-- Text for SnackTrack -->
-                        <h2 class="text-xl font-bold mb-4">Invoice/Cart</h2>
-                        <!-- UPI VPA Icon (Clickable) -->
-                        <img data-tooltip-target="tooltip-light" data-tooltip-style="light" src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer " id="upi-icon">
+                        <h2 class="card-title">Invoice/Cart</h2>
+                        <img data-tooltip-target="tooltip-light" data-tooltip-style="light" src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer" id="upi-icon">
                         <div id="tooltip-light" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-small text-gray-900 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 tooltip">
                             Enter UPI VPA
                             <div class="tooltip-arrow" data-popper-arrow></div>
                         </div>
                     </div>
-                    <div id="invoice-table-container" class="bg-gray-100 rounded-lg p-4">
-                        <table class="min-w-full" id="invoice-table">
+                    <div id="invoice-table-container" class="bg-white rounded-lg p-4">
+                        <table class="min-w-full table table-pin-cols table-zebra" id="invoice-table">
                             <thead>
                                 <tr>
                                     <th class="px-4 py-2">Product</th>
@@ -104,15 +155,15 @@
                     <div class="mt-4">
                         <p class="font-bold">Items: <span id="total-item">0</span></p>
                         <p class="font-bold pb-2">Total: ₹<span id="total-price">0.00</span></p>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Generate QR</button>
-                        <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Cash</button>
+                        <button class="btn btn-primary" id="gen-upi">Generate QR</button>
+                        <button class="btn btn-success" id="cash-pay">Cash</button>
                     </div>
                 </div>
 
                 <!-- Sales Brief Table (3) -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold mb-4">Sales Brief</h2>
-                    <div class="bg-gray-100 rounded-lg p-4">
+                <div class="card bg-white shadow-xl p-6">
+                    <h2 class="card-title">Sales Brief</h2>
+                    <div class="bg-white rounded-lg p-4">
                         <p class="font-bold">Income Generated: ₹<span id="total-income">0.00</span></p>
                         <p class="font-bold">Total Products Sold: <span id="total-products-sold">0</span></p>
                         <p class="font-bold">Total Transactions Made: <span id="total-transactions">0</span></p>
@@ -126,35 +177,37 @@
                 </div>
             </div>
         </div>
+
         <!-- Modal Popup for UPI VPA -->
-        <div id="upi-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div id="upi-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex justify-center items-center">
+            <div class="card bg-white shadow-xl p-6 w-96">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Enter UPI Virtual Address</h3>
                     <button id="close-modal" class="text-xl font-bold">×</button>
                 </div>
-                <input type="text" id="upi-input" class="border px-4 py-2 w-full mb-4" placeholder="Enter UPI VPA">
+                <input type="text" id="upi-input" class="input input-bordered bg-white w-full mb-4" placeholder="Enter UPI VPA">
                 <div class="flex justify-end space-x-4">
-                    <button id="cancel-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
-                    <button id="save-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save</button>
+                    <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="save-btn" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
+
         <!-- Modal Popup for Customer Details and QR -->
-        <div id="qr-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-96" id="qr-frame">
+        <div id="qr-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex justify-center items-center">
+            <div class="card bg-white shadow-xl p-6 w-96" id="qr-frame">
                 <div id="customer-details-section">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-bold">Enter Customer Details</h3>
                         <button id="qclose-modal" class="text-xl font-bold">×</button>
                     </div>
                     <p class="text-base">Customer Name</p>
-                    <input type="text" id="customer-name" class="border px-4 py-2 w-full mb-4" placeholder="Enter Customer Name">
+                    <input type="text" id="customer-name" class="input input-bordered w-full mb-4" placeholder="Enter Customer Name">
                     <p class="text-base">Customer Mobile</p>
-                    <input type="text" id="customer-mobile" class="border px-4 py-2 w-full mb-4" placeholder="Enter Mobile Number">
+                    <input type="text" id="customer-mobile" class="input input-bordered w-full mb-4" placeholder="Enter Mobile Number">
                     <div class="flex justify-end space-x-4">
-                        <button id="qcancel-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
-                        <button id="qnext-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
+                        <button id="qcancel-btn" class="btn btn-secondary">Cancel</button>
+                        <button id="qnext-btn" class="btn btn-primary">Next</button>
                     </div>
                 </div>
                 <div id="qr-display-section" class="hidden">
@@ -164,10 +217,9 @@
                     </div>
                     <div class="flex">
                         <div id="qr-code-container" class="flex justify-center items-center mb-4 mr-4">
-                            <!-- QR Code Image will be inserted dynamically -->
                             <img id="qr-code-image" class="w-48 h-48" src="" alt="QR Code">
                         </div>
-                        <div id="cart-items-section" class="bg-gray-100 rounded-lg p-4">
+                        <div id="cart-items-section" class="bg-white rounded-lg p-4">
                             <h4 class="font-bold">Cart Items:</h4>
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead>
@@ -185,7 +237,7 @@
                         </div>
                     </div>
                     <div class="flex justify-end space-x-4">
-                        <button id="complete-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-3">Complete</button>
+                        <button id="complete-btn" class="btn btn-success mt-3">Complete</button>
                     </div>
                 </div>
             </div>
@@ -199,9 +251,9 @@
                 </div>
                 <div id="cash-customer-details">
                     <p class="text-base">Customer Name</p>
-                    <input type="text" id="customer-name-cash" class="border px-4 py-2 w-full mb-4" placeholder="Enter Customer Name">
+                    <input type="text" id="customer-name-cash" class="input input-bordered w-full mb-4" placeholder="Enter Customer Name">
                     <p class="text-base">Amount Received</p>
-                    <input type="number" id="amount-received" class="border px-4 py-2 w-full mb-4" placeholder="Enter Amount Received">
+                    <input type="number" id="amount-received" class="input input-bordered w-full mb-4" placeholder="Enter Amount Received">
                     <div class="flex justify-end space-x-4">
                         <button id="cancel-cash-btn" class="bg-gray-400 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
                         <button id="next-cash-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button>
@@ -236,11 +288,11 @@
             </div>
         </div>
     </main>
-    <footer class="bg-orange-400 text-white py-4 mt-10">
-        <div class="container mx-auto text-center">
-            <p>&copy; 2025 SnackTrack. All rights reserved.</p>
-        </div>
-    </footer>
+    <footer class="footer footer-center bg-orange-400 text-yellow-500 py-4 mt-10">
+        <aside>
+          <p>Copyright © 2025. All rights reserved by SnackTrack.</p>
+        </aside>
+      </footer>
 </body>
 <script>
     // An array to track the products added to the invoice
@@ -258,10 +310,10 @@
             products.forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="border px-4 py-2">${product.name}</td>
-                    <td class="border px-4 py-2">₹${product.price.toFixed(2)}</td>
-                    <td class="border px-4 py-2">
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded" onclick="addToInvoice('${product._id}', '${product.name}', ${product.price})">Add</button>
+                    <td>${product.name}</td>
+                    <td>₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <button id="ptb" class="btn btn-outline btn-sm btn-primary" onclick="addToInvoice('${product._id}', '${product.name}', ${product.price})">Add</button>
                     </td>
                 `;
                 productTableBody.appendChild(row);
@@ -307,11 +359,11 @@
         invoiceItems.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="border px-4 py-2">${item.productName}</td>
-                <td class="border px-4 py-2">₹${item.price.toFixed(2)}</td>
-                <td class="border px-4 py-2">${item.quantity}</td>
-                <td class="border px-4 py-2">
-                    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded" onclick="removeFromInvoice('${item.productId}')">Remove</button>
+                <td>${item.productName}</td>
+                <td>₹${item.price.toFixed(2)}</td>
+                <td>${item.quantity}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm btn-error" onclick="removeFromInvoice('${item.productId}')">Remove</button>
                 </td>
             `;
             invoiceTableBody.appendChild(row);
@@ -442,7 +494,7 @@
     genQRerrorMessage.style.marginTop = '5px';
 
     // Show the modal when Generate QR button is clicked
-    document.querySelector('.bg-blue-500').addEventListener('click', () => {
+    document.getElementById('gen-upi').addEventListener('click', () => {
         if(document.querySelector('#total-item').textContent > 0){
             qrModal.classList.remove('hidden');
             customerDetailsSection.classList.remove('hidden');
@@ -646,7 +698,7 @@
     var transactionID;
 
     // Show the cash modal when the Cash button is clicked
-    document.querySelector('.bg-green-500').addEventListener('click', () => {
+    document.getElementById('cash-pay').addEventListener('click', () => {
         if(document.querySelector('#total-item').textContent > 0){
             cashModal.classList.remove('hidden');
         }

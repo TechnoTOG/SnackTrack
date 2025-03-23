@@ -1,22 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaction History - SnackTrack</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/logos/SnackTrack_text.svg">
+    <link rel="icon" type="image/png" href="/assets/logos/SnackTrack_logo_nbg2.png">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.5.1/dist/full.css" rel="stylesheet">
     <style>
         .bg-orange-400 {
-            background-color: #ff9c2b; /* Orange */
+            background-color: #FFF0CB; /* Orange */
+        }
+        table.table-zebra tbody tr:nth-child(even) > * {
+          background-color: #f1f3f6;
+        }
+
+        table.table-zebra thead th {
+            background-color: #f1f3f6;
+        }
+        /* Ensure table headers stay below modal */
+        table thead th {
+            position: relative;
+            z-index: 1;
+        }
+        /* Increase font size of table content to 12px */
+        table.min-w-full td,
+        table.min-w-full th {
+            font-size: 14px; /* Set font size to 12px */
+        }
+
+        /* Ensure modal is on top */
+        #transaction-modal {
+            z-index: 9999;
         }
     </style>
 </head>
-<body>
-    <header class="bg-orange-400 text-white py-4">
-        <div class="container mx-auto flex justify-between items-center px-4">
-            <a href="/" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg.png" alt="SnackTrack" width="60" height="60"></a>
-            <nav>
+<body class="bg-white text-black">
+    <!-- Header -->
+    <header class="bg-orange-400 text-yellow-500 py-4">
+        <div class="container mx-auto flex justify-start items-center px-4">
+            <a href="/" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg2.png" alt="SnackTrack" width="60" height="60"></a>
+            <nav class="pl-8">
                 <ul class="flex space-x-4">
                     <li><a href="/">Home</a></li>
                     <li><a href="/transactions">Transactions</a></li>
@@ -27,59 +51,96 @@
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="container mx-auto mt-10">
-        <h1 class="text-3xl font-bold w-full text-center">Transaction History</h1>
-        
+        <h1 class="text-3xl font-bold text-center">Transaction History</h1>
+
+        <!-- Search Bar and Filter -->
         <div class="flex justify-between items-center mb-4 m-4">
-            <div class='max-w-md mx-auto'>
-                <div class="relative flex items-center w-full h-12 rounded-xl focus-within:shadow-lg bg-gray-50 overflow-hidden">
+            <div class="max-w-lg mx-auto"> <!-- Increased max-width for a longer search bar -->
+                <div class="relative flex items-center w-full h-12 rounded-xl focus-within:shadow-lg bg-gray-100 overflow-hidden ml-24"> <!-- Added ml-8 to move it to the right -->
                     <div class="grid place-items-center h-full w-12 text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <input class="border-gray-700 rounded-xl peer bg-gray-50 h-full w-full outline-none text-sm text-gray-700 pr-2" 
+                    <input class="border-gray-700 rounded-xl peer bg-gray-100 h-full w-full outline-none text-sm text-gray-700 pr-2" 
                            type="text" 
                            id="search-bar" 
                            placeholder="Search transactions..." /> 
                 </div>
             </div>
-            <select id="filter-options" class="border px-4 py-2">
+            <select id="filter-options" class="select select-bordered mr-4">
                 <option value="">All Transactions</option>
                 <option value="cash">Cash</option>
                 <option value="upi">UPI</option>
             </select>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md m-4 p-6">
-            <div id="transactions-table-container" class="bg-gray-100 rounded-lg p-4">
-                <table class="rounded-lg min-w-full" id="transactions-table">
+        <!-- Transaction Table in a Card -->
+        <div class="card bg-white shadow-xl p-6 m-4">
+            <div class="bg-white rounded-lg p-4 overflow-x-auto">
+                <table class="min-w-full table table-pin-cols table-zebra">
                     <thead>
                         <tr>
-                            <th class="px-4 py-2">Transaction ID</th>
-                            <th class="px-4 py-2">Customer Name</th>
-                            <th class="px-4 py-2">Customer Mobile</th>
-                            <th class="px-4 py-2">Items</th>
-                            <th class="px-4 py-2">Amount</th>
-                            <th class="px-4 py-2">Payment Method</th>
-                            <th class="px-4 py-2">Date & Time</th>
-                            <th class="px-4 py-2">Completion Time</th>
+                            <th class="px-4 py-2 text-black">Transaction ID</th>
+                            <th class="px-4 py-2 text-black">Name</th>
+                            <th class="px-4 py-2 text-black">Mobile</th>
+                            <th class="px-4 py-2 text-black">Amount</th>
+                            <th class="px-4 py-2 text-black">Payment Method</th>
+                            <th class="px-4 py-2 text-black">Date & Time</th>
+                            <th class="px-4 py-2 text-black">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="transactions-table-body">
                         <!-- Dynamically generated rows for transactions -->
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- Modal Popup for Transaction Summary -->
+        <div id="transaction-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <div class="bg-gray-100 rounded-lg p-4 mt-4" id="transaction-summary">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xl font-bold" id="modal-title">Transaction Details</h4>
+                        <button id="close-transaction-modal" class="text-xl font-bold">×</button>
+                    </div>
+                    <p><strong>Transaction ID: <span id="modal-trans-id">N/A</span></strong></p>
+                    <p><strong>Name:</strong> <span id="modal-customer-name">Unknown</span></p>
+                    <p><strong>Mobile:</strong> <span id="modal-customer-mobile">+91 --</span></p>
+                    <p><strong>Amount:</strong> ₹<span id="modal-amount">0.00</span></p>
+                    <p><strong>Payment Method:</strong> <span id="modal-payment-method">N/A</span></p>
+                    <p><strong>Date & Time:</strong> <span id="modal-date-time">N/A</span></p>
+                    <table class="min-w-full border-collapse border border-gray-300 mt-2">
+                        <thead>
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-2">Item</th>
+                                <th class="border border-gray-300 px-4 py-2">Quantity</th>
+                                <th class="border border-gray-300 px-4 py-2">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-items-list">
+                            <!-- Items will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end space-x-4 mt-4" id="trans-summary-btns">
+                    <button id="close-transaction-modal-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <footer class="bg-orange-400 text-white py-4 mt-10">
-        <div class="container mx-auto text-center">
-            <p>&copy; 2025 SnackTrack. All rights reserved.</p>
-        </div>
+    <!-- Footer -->
+    <footer class="footer footer-center bg-orange-400 text-yellow-500 py-4 mt-10">
+        <aside class="text-center w-full">
+            <p>Copyright © 2025. All rights reserved by SnackTrack.</p>
+        </aside>
     </footer>
 
+    <!-- JavaScript -->
     <script>
         // Fetch transactions from the server
         async function fetchTransactions() {
@@ -92,32 +153,85 @@
             }
         }
 
+        async function fetchTransactions_v2() {
+            try {
+                const response = await fetch('/api/transactions');
+                const transactions = await response.json();
+                return transactions;
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            }
+        }
+
         // Render transactions in the table
         function renderTransactions(transactions) {
-            const transactionsTableBody = document.querySelector('#transactions-table tbody');
+            const transactionsTableBody = document.getElementById('transactions-table-body');
             transactionsTableBody.innerHTML = ''; // Clear existing rows
 
             transactions.forEach(transaction => {
                 const row = document.createElement('tr');
                 const itemsList = transaction.items.map(item => `${item.name} (Qty: ${item.quantity}) price: ₹${item.price}`).join('<br>');
                 row.innerHTML = `
-                    <td class="border px-4 py-2">${transaction.tran_id}</td>
-                    <td class="border px-4 py-2">${transaction.custname}</td>
-                    <td class="border px-4 py-2">${transaction.custmobile ? transaction.custmobile : 'Not Recorded'}</td>
-                    <td class="border px-4 py-2">${itemsList}</td>
-                    <td class="border px-4 py-2">₹${transaction.amount.toFixed(2)}</td>
-                    <td class="border px-4 py-2">${transaction.mode}</td>
-                    <td class="border px-4 py-2">${transaction.date + " " + transaction.time}</td>
-                    ${transaction.mode === 'Cash' ? `<td class="border px-4 py-2">${transaction.time}</td>` : `<td class="border px-4 py-2">${transaction.updatedAt}</td>`}
+                    <td class="px-4 py-2">${transaction.tran_id}</td>
+                    <td class="px-4 py-2">${transaction.custname}</td>
+                    <td class="px-4 py-2">${transaction.custmobile ? `+91 ${transaction.custmobile}` : 'Not Recorded'}</td>
+                    <td class="px-4 py-2 hidden">${itemsList}</td>
+                    <td class="px-4 py-2">₹${transaction.amount.toFixed(2)}</td>
+                    <td class="px-4 py-2">${transaction.mode}</td>
+                    <td class="px-4 py-2">${transaction.date + " " + transaction.time}</td>
+                    <td class="px-4 py-2 hidden">${transaction.mode === 'Cash' ? transaction.time : transaction.updatedAt}</td>
+                    <td>
+                        <button id="ptb" class="btn btn-outline btn-sm btn-primary" onclick="viewTransaction('${transaction.tran_id}')">View</button>
+                    </td>
                 `;
                 transactionsTableBody.appendChild(row);
             });
         }
 
+        async function viewTransaction(transId) {
+            const transactionSummaryTableBody = document.querySelector('#transaction-items-list');
+            transactionSummaryTableBody.innerHTML = ''; 
+            const transactionSummaryModal = document.getElementById("transaction-modal");
+            const transactions = await fetchTransactions_v2();
+            const transaction = transactions.find(t => t.tran_id === transId);
+            transactionSummaryModal.classList.remove('hidden');
+
+            // Example: Populate a modal or display details on the page
+            document.getElementById('modal-trans-id').textContent = `${transaction.tran_id}`;
+            document.getElementById('modal-customer-name').textContent = transaction.custname;
+            document.getElementById('modal-customer-mobile').textContent = `+91 ${transaction.custmobile}`;
+            document.getElementById('modal-amount').textContent = `${transaction.amount.toFixed(2)}`;
+            document.getElementById('modal-payment-method').textContent = transaction.mode;
+            document.getElementById('modal-date-time').textContent = `${transaction.date} ${transaction.time}`;
+
+            transaction.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${item.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">${item.quantity}</td>
+                    <td class="border border-gray-300 px-4 py-2">${item.price}</td>
+                `;
+                transactionSummaryTableBody.appendChild(row);
+            });
+
+
+            
+        }
+
+        document.getElementById('close-transaction-modal').addEventListener('click', () => {
+            const modal = document.getElementById('transaction-modal');
+            modal.classList.add('hidden'); // Hide the modal
+        });
+
+        document.getElementById('close-transaction-modal-btn').addEventListener('click', () => {
+            const modal = document.getElementById('transaction-modal');
+            modal.classList.add('hidden'); // Hide the modal
+        });
+
         // Search functionality
-        document.getElementById('search-bar').addEventListener('input', function() {
+        document.getElementById('search-bar').addEventListener('input', function () {
             const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#transactions-table tbody tr');
+            const rows = document.querySelectorAll('#transactions-table-body tr');
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const match = Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(searchTerm));
@@ -126,9 +240,9 @@
         });
 
         // Filter functionality
-        document.getElementById('filter-options').addEventListener('change', function() {
+        document.getElementById('filter-options').addEventListener('change', function () {
             const filterValue = this.value;
-            const rows = document.querySelectorAll('#transactions-table tbody tr');
+            const rows = document.querySelectorAll('#transactions-table-body tr');
             rows.forEach(row => {
                 const paymentMethodCell = row.cells[5].textContent.toLowerCase();
                 if (filterValue === '' || paymentMethodCell === filterValue) {

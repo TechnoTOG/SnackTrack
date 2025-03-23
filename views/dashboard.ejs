@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SnackTrack</title>
-    <link rel="icon" type="image/svg+xml" href="/assets/logos/SnackTrack_text.svg" >
+    <link rel="icon" type="image/png" href="/assets/logos/SnackTrack_logo_nbg2.png">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@1.22.0/dist/full.css" rel="stylesheet">
     <script src="https://unpkg.com/flowbite@1.6.0/dist/flowbite.min.js"></script>
@@ -87,15 +87,15 @@
             border-color: #d92020; /* Retain the border color */
         }
 
-        /* Ensure modal is on top */
-        #upi-modal, #qr-modal, #cash-modal {
-            z-index: 9999;
-        }
-
         /* Ensure table headers stay below modal */
         table thead th {
             position: relative;
             z-index: 1;
+        }
+
+        /* Ensure modal is on top */
+        #upi-modal, #qr-modal, #cash-modal {
+            z-index: 9999;
         }
     </style>
 </head>
@@ -303,7 +303,7 @@
         <aside>
           <p>Copyright © 2025. All rights reserved by SnackTrack.</p>
         </aside>
-      </footer>
+    </footer>
 </body>
 <script>
     // An array to track the products added to the invoice
@@ -523,6 +523,7 @@
         const element = document.getElementById('qr-frame');
         element.classList.add('w-96');
         fetchSalesBrief();
+        toggleBodyScroll(false);
     }
     qcloseModal.addEventListener('click', closeModalHandler);
     closeModalQR.addEventListener('click', closeModalHandler);
@@ -724,6 +725,7 @@
         cashCustomerDetails.classList.remove('hidden');
         cashItemsList.innerHTML = ''; // Clear previous items
         cashErrorMessage.textContent = ''; // Clear error message
+        toggleBodyScroll(false);
     }
 
     // Close modal when the close button (×) is clicked
@@ -817,29 +819,29 @@
     function toggleBodyScroll(lock) {
         document.body.style.overflow = lock ? 'hidden' : 'auto';
     }
-    
+
     // Example usage with modal open/close events
     document.getElementById('upi-icon').addEventListener('click', () => {
         toggleBodyScroll(true); // Lock scrolling when modal opens
     });
-    
+
     document.getElementById('close-modal').addEventListener('click', () => {
         toggleBodyScroll(false); // Unlock scrolling when modal closes
     });
-    
+
     // Repeat for other modals
     document.getElementById('gen-upi').addEventListener('click', () => {
         toggleBodyScroll(true);
     });
-    
+
     document.getElementById('qclose-modal').addEventListener('click', () => {
         toggleBodyScroll(false);
     });
-    
+
     document.getElementById('cash-pay').addEventListener('click', () => {
         toggleBodyScroll(true);
     });
-    
+
     document.getElementById('close-cash-modal').addEventListener('click', () => {
         toggleBodyScroll(false);
     });

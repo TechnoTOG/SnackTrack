@@ -86,6 +86,17 @@
             color: white; /* Text color on hover */
             border-color: #d92020; /* Retain the border color */
         }
+
+        /* Ensure modal is on top */
+        #upi-modal, #qr-modal, #cash-modal {
+            z-index: 9999;
+        }
+
+        /* Ensure table headers stay below modal */
+        table thead th {
+            position: relative;
+            z-index: 1;
+        }
     </style>
 </head>
 <body class="bg-white text-black">
@@ -801,5 +812,36 @@
 
     // Handle Cancel Button in Summary
     document.getElementById('cancel-cash-btn-summary').addEventListener('click', closeCashModalHandler);
+
+        // Function to lock/unlock body scrolling
+    function toggleBodyScroll(lock) {
+        document.body.style.overflow = lock ? 'hidden' : 'auto';
+    }
+    
+    // Example usage with modal open/close events
+    document.getElementById('upi-icon').addEventListener('click', () => {
+        toggleBodyScroll(true); // Lock scrolling when modal opens
+    });
+    
+    document.getElementById('close-modal').addEventListener('click', () => {
+        toggleBodyScroll(false); // Unlock scrolling when modal closes
+    });
+    
+    // Repeat for other modals
+    document.getElementById('gen-upi').addEventListener('click', () => {
+        toggleBodyScroll(true);
+    });
+    
+    document.getElementById('qclose-modal').addEventListener('click', () => {
+        toggleBodyScroll(false);
+    });
+    
+    document.getElementById('cash-pay').addEventListener('click', () => {
+        toggleBodyScroll(true);
+    });
+    
+    document.getElementById('close-cash-modal').addEventListener('click', () => {
+        toggleBodyScroll(false);
+    });
 </script>
 </html>

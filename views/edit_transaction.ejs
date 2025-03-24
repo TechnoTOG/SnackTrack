@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnackTrack</title>
+    <link rel="icon" type="image/png" href="/assets/logos/SnackTrack_logo_nbg2.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@1.22.0/dist/full.css" rel="stylesheet">
+    <script src="https://unpkg.com/flowbite@1.6.0/dist/flowbite.min.js"></script>
+    <style>
+        .bg-orange-400 {
+            background-color: #FFF0CB; /* Orange */
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            grid-gap: 1.5rem; /* Gap between grid items */
+        }
+
+        .grid-item-2-3 {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Gap between stacked items */
+        }
+        
+        .scrollable {
+            overflow-y: auto;
+        }
+
+        .max-height-products {
+            max-height: 400px; /* Adjust based on visible rows for Products */
+        }
+
+        .max-height-invoice {
+            max-height: 200px; /* Adjust based on visible rows for Invoice */
+        }
+        
+        table.table-zebra tbody tr:nth-child(even) > * {
+          background-color: #f1f3f6;
+        }
+
+        table.table-zebra thead th {
+            background-color: #f1f3f6;
+        }
+
+        #gen-upi.btn-primary {
+            background-color: #1b48fa; /* Custom primary color */
+            color: #ffffff; /* Text color */
+            border: 1px solid #1b48fa; /* Optional border */
+        }
+
+        #gen-upi.btn-primary:hover {
+            background-color: #2147dc; /* Hover color */
+        }
+
+        .btn-outline.btn-primary {
+            color: #1b48fa; /* Text color */
+            border-color: #1b48fa; /* Outline color */
+        }
+
+        .btn-outline.btn-primary:hover {
+            background-color: #2147dc; /* Background on hover */
+            color: white; /* Text color on hover */
+            border-color: #2147dc; /* Retain the border color */
+        }
+
+        #cash-pay.btn-success {
+            background-color: #02c2af; /* Custom primary color */
+            color: #ffffff; /* Text color */
+            border: 1px solid #02c2af; /* Optional border */
+        }
+
+        #cash-pay.btn-success:hover {
+            background-color: #009485; /* Hover color */
+        }
+
+        .btn-outline.btn-error {
+            color: #ff2424; /* Custom primary color */
+            border-color: #ff2424; /* Optional border */
+        }
+
+        .btn-outline.btn-error:hover {
+            background-color: #d92020; /* Hover color */
+            color: white; /* Text color on hover */
+            border-color: #d92020; /* Retain the border color */
+        }
+
+        /* Ensure table headers stay below modal */
+        table thead th {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Ensure modal is on top */
+        #upi-modal, #qr-modal, #cash-modal {
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-white text-black">
+    <header class="bg-orange-400 text-yellow-500 py-4">
+        <div class="container mx-auto flex justify-start items-center px-4">
+            <a href="/" class="text-lg font-bold"><img src="/assets/logos/SnackTrack_logo_nbg2.png" alt="SnackTrack" width="60" height="60"></a>
+            <nav class="pl-8">
+                <ul class="flex space-x-4">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/transactions">Transactions</a></li>
+                    <li><a href="/items">Items</a></li>
+                    <li><a href="/about">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto mt-10">
+        <!-- Flex container to align H1 and Alert -->
+        <h1 class="text-3xl font-bold text-center flex-grow">Modifying Transaction: <%= transaction.tran_id %></h1><br>
+        <div class="flex items-end justify-end mb-4 mr-4">
+            <!-- Message Alert -->
+            <div role="alert" class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-6 w-6 shrink-0 stroke-current mr-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>The Payment method buttons will only be visible if the new amount is greater than the paid amount.</span>
+            </div>
+        </div>
+        <div class="grid-layout px-4 mt-1">
+            <!-- Product Table (1) -->
+            <div class="card bg-white shadow-xl p-6">
+                <h2 class="card-title">Products</h2>
+                <div id="product-table-container" class="bg-white rounded-lg p-4 overflow-x-auto">
+                    <table class="min-w-full table table-pin-cols table-zebra" id="product-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamically generated rows for products -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Invoice/Cart and Sales Brief Tables (2, 3) -->
+            <div class="grid-item-2-3">
+                <!-- Invoice/Cart Table (2) -->
+                <div class="card bg-white shadow-xl p-6">
+                    <div class="relative flex items-center">
+                        <h2 class="card-title">Invoice/Cart</h2>
+                        <img data-tooltip-target="tooltip-light" data-tooltip-style="light" src="/assets/icons/upi_pay_24dp_6B7280_FILL0_wght500_GRAD0_opsz24.svg" alt="UPI VPA" class="absolute right-0 cursor-pointer" id="upi-icon">
+                        <div id="tooltip-light" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-small text-gray-900 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 tooltip">
+                            Enter UPI VPA
+                            <div class="tooltip-arrow" data-popper-arrow></div>
+                        </div>
+                    </div>
+                    <div id="invoice-table-container" class="bg-white rounded-lg p-4">
+                        <table class="min-w-full table table-pin-cols table-zebra" id="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-2">Product</th>
+                                    <th class="px-4 py-2">Price</th>
+                                    <th class="px-4 py-2">Quantity</th>
+                                    <th class="px-4 py-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoice-table-body">
+                                <!-- Dynamically generated rows for added products -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-bold">Items: <span id="total-item">0</span></p>
+                        <p class="font-bold pb-2">Total: ₹<span id="total-price">0.00</span></p>
+                        <div class="hidden" id="pay-mode-btn-grp">
+                            <button class="btn btn-primary" id="upi-pay">UPI</button>
+                            <button class="btn btn-success" id="cash-pay">Cash</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Brief Table (3) -->
+                <div class="card bg-white shadow-xl p-6">
+                    <h2 class="card-title">Customer Details</h2>
+                    <div class="bg-white rounded-lg p-4">
+                        <p class="font-bold">Name: <span id="total-income"><%= transaction.custname %></span></p>
+                        <% if (transaction.mode === 'UPI') { %>
+                            <p class="font-bold">Mobile: <span id="total-products-sold"><%= transaction.custmobile %></span></p>
+                        <% } %>
+                        <p class="font-bold">Paid Amount: <span id="total-transactions"><%= transaction.amount %></span></p>
+                        <p class="font-bold">Payment Mode: <span id="pending-transactions"><%= transaction.mode %></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Popup for UPI VPA -->
+        <div id="upi-modal" class="hidden fixed inset-0 bg-white bg-opacity-50 flex justify-center items-center">
+            <div class="card bg-white shadow-xl p-6 w-96">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Enter UPI Virtual Address</h3>
+                    <button id="close-modal" class="text-xl font-bold">×</button>
+                </div>
+                <input type="text" id="upi-input" class="input input-bordered bg-white w-full mb-4" placeholder="Enter UPI VPA">
+                <div class="flex justify-end space-x-4">
+                    <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="save-btn" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Popup for Transaction Summary -->
+        <div id="payment-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <div class="bg-gray-100 rounded-lg p-4 mt-4" id="payment-summary">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xl font-bold" id="modal-title">Balance Payment</h4>
+                        <button id="close-transaction-modal" class="text-xl font-bold">×</button>
+                    </div>
+                    <p><strong>Transaction ID: <span id="modal-trans-id"><%= transaction.tran_id %></span></strong></p>
+                    <p><strong>Name:</strong> <span id="modal-customer-name"><%= transaction.custname %></span></p>
+                    <% if (transaction.mode === 'UPI') { %>
+                        <p class="font-bold">Mobile: <span id="total-products-sold"><%= transaction.custmobile %></span></p>
+                    <% } %>
+                    <p><strong>Amount Paid:</strong> ₹<span id="modal-amount"><%= transaction.amount %></span></p>
+                    <p><strong>Payment Method:</strong> <span id="modal-payment-method"></span></p>
+                    <br>
+                    <p><strong>Balance Amount:</strong> <span id="modal-bal-amt">N/A</span></p>
+                    <table class="min-w-full border-collapse border border-gray-300 mt-2">
+                        <thead>
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-2">Item</th>
+                                <th class="border border-gray-300 px-4 py-2">Quantity</th>
+                                <th class="border border-gray-300 px-4 py-2">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-items-list">
+                            <!-- Items will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end space-x-4 mt-4" id="trans-summary-btns">
+                    <button id="edit-transaction-modal-btn" class="btn btn-primary">Complete</button>
+                    <button id="close-transaction-modal-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer footer-center bg-orange-400 text-yellow-500 py-4 mt-10">
+        <aside>
+          <p>Copyright © 2025. All rights reserved by SnackTrack.</p>
+        </aside>
+    </footer>
+</body>
+<script>
+    // Amount Paid and new total
+    const amtpaid = <%- transaction.amount %>;
+    let newTotal = <%- transaction.amount %>;
+    // Global array to store invoice items
+    let invoiceItems = [];
+    // Embed the transaction object into a global variable
+    const transaction = <%- JSON.stringify(transaction) %>;
+
+    newTotal = parseFloat(newTotal);
+
+    // Populate the invoice table on page load
+    window.onload = () => {
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        if (!savedVpa) {
+            // Show the UPI modal if no VPA is saved
+            upiModal.classList.remove('hidden');
+        }else{
+            cancelBtn.disabled = false;
+            closeModal.disabled = false;
+        }
+        // Fetch products and sales brief on page load
+        fetchProducts();
+        populateInvoiceTable(transaction);
+    };
+
+    function applyScrollPane(tableId, containerId, maxRows) {
+        const table = document.getElementById(tableId);
+        const container = document.getElementById(containerId);
+        const rowCount = table.querySelector("tbody").rows.length;
+
+        if (rowCount > maxRows) {
+            container.classList.add("scrollable");
+            container.style.maxHeight = maxRows === 14 ? "695px" : "300px"; // Adjust max height for Products or Invoice
+        } else {
+            container.classList.remove("scrollable");
+            container.style.maxHeight = "unset";
+        }
+    }
+
+    // Apply scroll pane for Products and Invoice tables
+    applyScrollPane("product-table", "product-table-container", 14);
+    applyScrollPane("invoice-table", "invoice-table-container", 5);
+
+    // Optionally reapply when rows are dynamically added/removed
+    // Get references to elements
+    const upiIcon = document.getElementById('upi-icon');
+    const upiModal = document.getElementById('upi-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const upiInput = document.getElementById('upi-input');
+    const errorMessage = document.createElement('p'); // Error message element
+
+    // Add styles for error message
+    errorMessage.style.color = 'red';
+    errorMessage.style.fontSize = '0.875rem';
+    errorMessage.style.marginTop = '5px';
+
+    cancelBtn.disabled = true;
+    closeModal.disabled = true;
+
+    // Show the UPI modal when the icon is clicked
+    upiIcon.addEventListener('click', () => {
+        // Retrieve UPI VPA from session storage if available
+        const savedVpa = sessionStorage.getItem('upiVpa');
+        if (savedVpa) {
+            upiInput.value = savedVpa; // Populate the input field with the saved value
+        } else {
+            upiInput.value = ''; // Clear the field if no VPA is saved
+        }
+        upiModal.classList.remove('hidden'); // Show the modal
+    });
+
+    // Close the modal when the close button (×) is clicked
+    closeModal.addEventListener('click', () => {
+        upiModal.classList.add('hidden'); // Hide the modal
+        errorMessage.remove(); // Remove error message when closing the modal
+    });
+
+    // Close the modal when the Cancel button is clicked
+    cancelBtn.addEventListener('click', () => {
+        upiModal.classList.add('hidden'); // Hide the modal
+        errorMessage.remove(); // Remove error message when cancelling
+    });
+
+    // Save the UPI VPA to sessionStorage and close the modal
+    saveBtn.addEventListener('click', () => {
+        const upiVpa = upiInput.value.trim();
+
+        // Remove any previous error message before validating
+        errorMessage.remove();
+
+        if (upiVpa) {
+            // Validate that the UPI VPA contains '@'
+            if (upiVpa.includes('@')) {
+                cancelBtn.disabled = false;
+                closeModal.disabled = false;
+                sessionStorage.setItem('upiVpa', upiVpa); // Save the UPI VPA to sessionStorage
+                upiModal.classList.add('hidden'); // Hide the modal
+            } else {
+                // Show error message if the validation fails
+                errorMessage.textContent = 'Please enter a valid UPI VPA (must contain "@")';
+                upiInput.after(errorMessage); // Append error message after the input field
+            }
+        } else {
+            // Show error message if the input is empty
+            errorMessage.textContent = 'UPI VPA cannot be empty.';
+            upiInput.after(errorMessage); // Append error message after the input field
+        }
+    });
+
+    async function fetchProducts() {
+        try {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+
+            const productTableBody = document.querySelector('#product-table tbody');
+            productTableBody.innerHTML = ''; // Clear existing rows
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>₹${product.price.toFixed(2)}</td>
+                    <td>
+                        <button id="ptb" class="btn btn-outline btn-sm btn-primary" onclick="addToInvoice('${product._id}', '${product.name}', ${product.price})">Add</button>
+                    </td>
+                `;
+                productTableBody.appendChild(row);
+            });
+
+            applyScrollPane("product-table", "product-table-container", 14);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    }
+
+    function checkAmt(){
+        if(amtpaid<newTotal || amtpaid>newTotal){
+            const modeBtns = document.getElementById('pay-mode-btn-grp').classList.remove('hidden');
+        } else {
+            const modeBtns = document.getElementById('pay-mode-btn-grp').classList.add('hidden');
+        }
+    }
+
+    // Function to populate the invoice table with transaction items
+    function populateInvoiceTable(transaction) {
+        // Clear existing rows in the invoice table
+        const invoiceTableBody = document.getElementById('invoice-table-body');
+        invoiceTableBody.innerHTML = ''; // Clear existing rows
+
+        // Clear the invoiceItems array before adding new items
+        invoiceItems = [];
+
+        // Iterate over the items in the transaction
+        transaction.items.forEach(item => {
+            // Add each item to the invoiceItems array
+            invoiceItems.push({
+                productId: item.productId || 'unknown', // Use a unique ID or placeholder
+                productName: item.name,
+                price: item.price,
+                quantity: item.quantity,
+            });
+        });
+
+        // Render the invoice table after updating the invoiceItems array
+        renderInvoice();
+        // Update totals
+        updateTotals(transaction);
+    }
+
+    // Function to update the total price and item count
+    function updateTotals(transaction) {
+        const totalItems = transaction.items.reduce((sum, item) => sum + item.quantity, 0);
+        const totalPrice = transaction.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        document.getElementById('total-item').textContent = totalItems;
+        document.getElementById('total-price').textContent = totalPrice.toFixed(2);
+        newTotal = totalPrice.toFixed(2);
+        checkAmt();
+    }
+
+    // Function to add a product to the invoice
+    function addToInvoice(productId, productName, price) {
+        newTotal = parseFloat(newTotal);
+        // Check if the product already exists in the invoice
+        const existingItem = invoiceItems.find(item => item.productId === productId);
+
+        if (existingItem) {
+            // Increment the quantity if the product already exists
+            existingItem.quantity += 1;
+            newTotal += price;
+        } else {
+            // Add the product as a new item
+            invoiceItems.push({
+                productId: productId,
+                productName: productName,
+                price: price,
+                quantity: 1,
+            });
+            newTotal += price;
+        }
+        checkAmt();
+
+        // Re-render the invoice table
+        renderInvoice();
+    }
+
+    // Function to render the invoice table
+    function renderInvoice() {
+        const invoiceTableBody = document.getElementById('invoice-table-body');
+        invoiceTableBody.innerHTML = ''; // Clear existing rows
+
+        let total = 0;
+        let totalItems = 0;
+
+        // Iterate over the invoiceItems to generate the table rows
+        invoiceItems.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.productName}</td>
+                <td>₹${item.price.toFixed(2)}</td>
+                <td>${item.quantity}</td>
+                <td>
+                    <button class="btn btn-outline btn-sm btn-error" onclick="removeFromInvoice('${item.productId}')">Remove</button>
+                </td>
+            `;
+            invoiceTableBody.appendChild(row);
+
+            // Update total and item count
+            total += item.price * item.quantity;
+            totalItems += item.quantity;
+        });
+
+        // Update total price and total items count
+        document.getElementById('total-item').textContent = totalItems;
+        document.getElementById('total-price').textContent = total.toFixed(2);
+    }
+
+    // Function to remove a product from the invoice
+function removeFromInvoice(productId) {
+    // Find the index of the item in the invoiceItems array
+    const itemIndex = invoiceItems.findIndex(item => item.productId === productId);
+
+    if (itemIndex > -1) {
+        // Get the item being removed
+        const removedItem = invoiceItems[itemIndex];
+
+        // Update newTotal by subtracting the total value of the removed item
+        newTotal -= removedItem.price * removedItem.quantity;
+
+        // Remove the product from the array
+        invoiceItems.splice(itemIndex, 1);
+
+        // Call checkAmt() to update any dependent logic
+        checkAmt();
+
+        // Re-render the invoice table
+        renderInvoice();
+    }
+}
+</script>
+</html>

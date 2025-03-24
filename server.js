@@ -69,6 +69,33 @@ app.get("/transactions", (req, res) => {
   res.render("transactions");
 });
 
+// Define the schema for products (with flexible fields)
+const transactionSchema = new mongoose.Schema({}, { strict: false }); // Flexible schema
+
+// Create a model for the "transactions" collection in the MongoDB
+const Transaction = require('./models/transactionsData');
+
+// Route to handle /transaction/:tranId
+app.get('/transaction/:tranId', async (req, res) => {
+  const { tranId } = req.params; // Extract the transaction ID from the URL
+
+  try {
+      // Fetch the transaction from the database
+      const transaction = await Transaction.findOne({ tran_id: tranId }).lean();
+
+      if (!transaction) {
+          // If no transaction is found, return a 404 error
+          return res.status(404).send('Transaction not found');
+      } else {
+        // Render or send the transaction details
+        res.render("edit_transaction",{ transaction });
+      }
+  } catch (error) {
+      console.error('Error fetching transaction:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
 // Inventory/Item route
 app.get("/items", (req, res) => {
   res.render("items");

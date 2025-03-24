@@ -3,11 +3,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const mongoConnect = require('../db/mongodb');
 
-// Define the schema for products (with flexible fields)
-const transactionSchema = new mongoose.Schema({}, { strict: false }); // Flexible schema
-
 // Create a model for the "transactions" collection in the MongoDB
-const Transaction = mongoose.model('Transaction', transactionSchema, 'transactions');
+const Transaction = require('../models/transactionsData');
 
 // Route to complete a transaction and automatically update a document
 router.post('/complete-transaction', async (req, res) => {

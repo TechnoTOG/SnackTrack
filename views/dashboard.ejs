@@ -564,6 +564,7 @@
         try {
             // Collect items from the invoice/cart
             const items = invoiceItems.map(item => ({
+                productId: item.productId,
                 name: item.productName,
                 quantity: item.quantity,
                 price: item.price
@@ -785,6 +786,7 @@
 
         // Collect items from the invoice/cart
         const items = invoiceItems.map(item => ({
+                productId: item.productId,
                 name: item.productName,
                 quantity: item.quantity,
                 price: item.price

@@ -127,6 +127,7 @@
                     </table>
                 </div>
                 <div class="flex justify-end space-x-4 mt-4" id="trans-summary-btns">
+                    <button id="edit-transaction-modal-btn" class="btn btn-primary">Edit</button>
                     <button id="close-transaction-modal-btn" class="btn btn-secondary">Close</button>
                 </div>
             </div>
@@ -214,8 +215,9 @@
                 transactionSummaryTableBody.appendChild(row);
             });
 
-
-            
+            document.getElementById('edit-transaction-modal-btn').addEventListener('click', () => {
+                window.location.href = `/transaction/${transaction.tran_id}`;
+            });
         }
 
         document.getElementById('close-transaction-modal').addEventListener('click', () => {

@@ -5,6 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/TechnoTOG/SnackTrack?style=flat&logo=git&logoColor=white&color=0080ff)
 ![GitHub repo size](https://img.shields.io/github/repo-size/TechnoTOG/SnackTrack)
 ![GitHub language count](https://img.shields.io/github/languages/count/TechnoTOG/SnackTrack)
+![GitHub contributors](https://img.shields.io/github/contributors-anon/TechnoTOG/SnackTrack)
 
 **Built with the tools and technologies:**
 
